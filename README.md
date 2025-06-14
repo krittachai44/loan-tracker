@@ -1,2 +1,2 @@
 # loan-logging
-to log load payment
+to log loan payment
