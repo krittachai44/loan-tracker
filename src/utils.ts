@@ -1,22 +1,28 @@
 import { differenceInCalendarDays, startOfDay } from 'date-fns';
 import { type Loan, type Payment, type ReferenceRate } from './types';
+import { DAYS_IN_YEAR } from './constants';
 
 /**
  * Format a number string with thousands separators (commas)
  * Removes non-numeric characters except decimal point, then formats
  */
 export function formatNumberInput(value: string): string {
+  // Early return for empty string
+  if (!value) return '';
+
   // Remove any non-numeric characters except decimal point
   const cleaned = value.replace(/[^0-9.]/g, '');
+  
   // Ensure only one decimal point
   const parts = cleaned.split('.');
   const withSingleDecimal = parts.length > 2 ? `${parts[0]}.${parts.slice(1).join('')}` : cleaned;
-  // Remove any existing commas
-  const withoutCommas = withSingleDecimal.replace(/,/g, '');
+  
   // Split by decimal point
-  const [integerPart, decimalPart] = withoutCommas.split('.');
+  const [integerPart, decimalPart] = withSingleDecimal.split('.');
+  
   // Add commas to integer part
   const formattedInteger = integerPart.replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+  
   // Reconstruct with decimal part if present
   return decimalPart !== undefined ? `${formattedInteger}.${decimalPart}` : formattedInteger;
 }
@@ -42,17 +48,17 @@ export function formatDateForDisplay(isoDate: string): string {
  */
 export function parseDateFromInput(dateStr: string): string {
   if (!dateStr) return '';
-  // Allow user to type with or without slashes
+  
   const cleaned = dateStr.replace(/\//g, '');
   
-  // If user hasn't finished typing, don't process
+  // Early return if user hasn't finished typing
   if (cleaned.length < 8) return dateStr;
   
   const day = cleaned.substring(0, 2);
   const month = cleaned.substring(2, 4);
   const year = cleaned.substring(4, 8);
   
-  // Validate
+  // Validate format
   if (!/^\d{2}$/.test(day) || !/^\d{2}$/.test(month) || !/^\d{4}$/.test(year)) {
     return dateStr;
   }
@@ -60,6 +66,7 @@ export function parseDateFromInput(dateStr: string): string {
   const dayNum = parseInt(day, 10);
   const monthNum = parseInt(month, 10);
   
+  // Validate ranges
   if (monthNum < 1 || monthNum > 12 || dayNum < 1 || dayNum > 31) {
     return dateStr;
   }
@@ -71,12 +78,9 @@ export function parseDateFromInput(dateStr: string): string {
  * Format date input as user types (DD/MM/YYYY)
  */
 export function formatDateInput(value: string): string {
-  // Remove non-digits and slashes
-  const cleaned = value.replace(/[^\d\/]/g, '');
+  const digitsOnly = value.replace(/[^\d]/g, '');
   
-  // Remove existing slashes to rebuild
-  const digitsOnly = cleaned.replace(/\//g, '');
-  
+  // Early returns for shorter inputs
   if (digitsOnly.length === 0) return '';
   if (digitsOnly.length <= 2) return digitsOnly;
   if (digitsOnly.length <= 4) return `${digitsOnly.substring(0, 2)}/${digitsOnly.substring(2)}`;
@@ -92,11 +96,35 @@ export interface PaymentLog {
     remainingPrincipal: number;
     amount: number;
     note?: string;
-    isPayment: boolean; // true if actual payment, false if just a daily snapshot or start
+    isPayment: boolean;
     paymentId?: number;
-    accruedInterest: number; // Interest generated in this period alone
-    rateBreakdown: string; // e.g. "1.99%(30)" or "1.99%(15)/2.50%(15)"
+    accruedInterest: number;
+    rateBreakdown: string;
 }
+
+// Cache for rate lookups to avoid repeated searches
+const rateCache = new Map<string, { type: 'fixed' | 'float'; value: number }>();
+
+/**
+ * Find active rate for a given date (with caching)
+ */
+const findActiveRate = (
+  date: Date,
+  sortedRates: Array<{ startDate: Date; type: 'fixed' | 'float'; value: number }>,
+  cacheKey: string
+): { type: 'fixed' | 'float'; value: number } => {
+  const cached = rateCache.get(cacheKey);
+  if (cached) return cached;
+
+  // Find the rate using reduce (more efficient than filter + find)
+  const activeRate = sortedRates.reduce((prev, curr) => {
+    return curr.startDate <= date ? curr : prev;
+  }, sortedRates[0]);
+
+  const result = { type: activeRate.type, value: activeRate.value };
+  rateCache.set(cacheKey, result);
+  return result;
+};
 
 /**
  * Calculates the loan amortization schedule based on Thai Bank Logic.
@@ -106,7 +134,13 @@ export interface PaymentLog {
  * 3. Calculation happens at each payment event.
  */
 export const calculateLoanSeries = (loan: Loan, payments: Payment[], referenceRates: ReferenceRate[] = []): PaymentLog[] => {
-    // 1. Sort payments by date
+    // Clear cache at start of calculation
+    rateCache.clear();
+
+    // Early return for no loan
+    if (!loan) return [];
+
+    // Sort payments once
     const sortedPayments = [...payments].sort((a, b) => a.date.getTime() - b.date.getTime());
 
     let currentPrincipal = loan.principal;
@@ -129,21 +163,26 @@ export const calculateLoanSeries = (loan: Loan, payments: Payment[], referenceRa
         rateBreakdown: ''
     });
 
-    // Normalize rates to start of day to avoid time component issues
-    const sortedRates = [...loan.rates].map(r => ({
+    // Normalize and sort rates
+    const sortedRates = [...loan.rates]
+      .map(r => ({
         ...r,
         startDate: startOfDay(r.startDate)
-    })).sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+      }))
+      .sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
 
-    const sortedRefRates = [...referenceRates].map(r => ({
+    // Normalize and sort reference rates
+    const sortedRefRates = [...referenceRates]
+      .map(r => ({
         ...r,
         date: startOfDay(r.date)
-    })).sort((a, b) => a.date.getTime() - b.date.getTime());
+      }))
+      .sort((a, b) => a.date.getTime() - b.date.getTime());
 
     for (const payment of sortedPayments) {
         const payDate = startOfDay(payment.date);
 
-        // Skip if payment is before start date (should cover in validation, but safe to check)
+        // Skip if payment is before start date
         if (payDate < lastDate) continue;
 
         const days = differenceInCalendarDays(payDate, lastDate);
@@ -153,47 +192,33 @@ export const calculateLoanSeries = (loan: Loan, payments: Payment[], referenceRa
         let periodStart = lastDate;
         const periodSegments: string[] = [];
 
-        // Loop guarantees: periodStart is always a startOfDay
         while (periodStart < payDate) {
-            // 1. Find the active loan rate segment
-            const activeRateObj = sortedRates.reduce((prev, curr) => {
-                return curr.startDate <= periodStart ? curr : prev;
-            }, sortedRates[0]);
+            // Find the active loan rate segment
+            const cacheKey = `${periodStart.getTime()}-${loan.id}`;
+            const activeRateObj = findActiveRate(periodStart, sortedRates, cacheKey);
 
-            if (!activeRateObj) {
-                break; // Should not happen if data is valid
-            }
-
-            // 2. Determine the actual annual interest rate (%) for this moment
+            // Determine the actual annual interest rate (%)
             let annualRate = 0;
             if (activeRateObj.type === 'fixed') {
                 annualRate = activeRateObj.value;
             } else {
                 // Float (MRR + Spread)
-                // Find active MRR
                 const activeMRR = sortedRefRates.reduce((prev, curr) => {
                     return curr.date <= periodStart ? curr : prev;
                 }, null as ReferenceRate | null);
 
-                const mrrValue = activeMRR ? activeMRR.rate : 0; // Default to 0 if no MRR defined? Or maybe error?
+                const mrrValue = activeMRR ? activeMRR.rate : 0;
                 annualRate = mrrValue + activeRateObj.value;
             }
 
-            // 3. Determine the end of this calculation segment
-            // Candidates:
-            // - Next Loan Rate Change
-            // - Next MRR Change (only if currently using MRR)
-            // - payDate
-
+            // Determine the end of this calculation segment
             const nextRateChange = sortedRates.find(r => r.startDate > periodStart);
             let nextChangeDate = nextRateChange ? nextRateChange.startDate : payDate;
 
             if (activeRateObj.type === 'float') {
                 const nextMRRChange = sortedRefRates.find(r => r.date > periodStart);
-                if (nextMRRChange) {
-                    if (nextMRRChange.date < nextChangeDate) {
-                        nextChangeDate = nextMRRChange.date;
-                    }
+                if (nextMRRChange && nextMRRChange.date < nextChangeDate) {
+                    nextChangeDate = nextMRRChange.date;
                 }
             }
 
@@ -202,27 +227,23 @@ export const calculateLoanSeries = (loan: Loan, payments: Payment[], referenceRa
 
             // Defensive check against infinite loop
             if (nextChangeDate <= periodStart) {
-                // Force advance if we are stuck (should not happen with normalized dates)
-                // If stuck, just jump to payDate to break loop mostly safely
                 nextChangeDate = payDate;
             }
 
             const daysInSegment = differenceInCalendarDays(nextChangeDate, periodStart);
             if (daysInSegment > 0) {
                 periodSegments.push(`${annualRate.toFixed(2)}%(${daysInSegment})`);
+                const segmentInterest = (currentPrincipal * (annualRate / 100) * daysInSegment) / DAYS_IN_YEAR;
+                periodInterest += segmentInterest;
             }
-
-            const daysInYear = 365;
-
-            const segmentInterest = (currentPrincipal * (annualRate / 100) * daysInSegment) / daysInYear;
-            periodInterest += segmentInterest;
 
             periodStart = nextChangeDate;
         }
 
+        // Calculate interest and principal allocation
+        const totalInterestDue = unpaidInterest + periodInterest;
         let interestPaid = 0;
         let principalPaid = 0;
-        const totalInterestDue = unpaidInterest + periodInterest;
 
         if (payment.amount >= totalInterestDue) {
             interestPaid = totalInterestDue;
@@ -234,8 +255,7 @@ export const calculateLoanSeries = (loan: Loan, payments: Payment[], referenceRa
             unpaidInterest = totalInterestDue - payment.amount;
         }
 
-        currentPrincipal -= principalPaid;
-        if (currentPrincipal < 0) currentPrincipal = 0;
+        currentPrincipal = Math.max(0, currentPrincipal - principalPaid);
 
         logs.push({
             date: payDate,

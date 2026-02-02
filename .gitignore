@@ -22,3 +22,8 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Documentation (generated/refactoring notes)
+REFACTORING_*.md
+HEADER_REFACTORING.md
+QUICK_REFERENCE.md

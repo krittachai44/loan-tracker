@@ -1,4 +1,4 @@
-import * as React from 'react';
+import { memo, useMemo } from 'react';
 import { Grid, useTheme } from '@mui/material';
 import { SummaryCard } from './SummaryCard';
 import type { Loan } from '../types';
@@ -10,11 +10,13 @@ interface LoanSummaryProps {
     totalPayments: number;
 }
 
-export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPayments }) => {
+export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments }) => {
     const theme = useTheme();
+
+    // Derive state during render instead of in effects
     const currentStatus = series[series.length - 1];
 
-    const getRateDisplay = () => {
+    const getRateDisplay = useMemo(() => {
         if (!loan.rates || loan.rates.length === 0) return 'N/A';
         const firstRate = loan.rates[0];
         const baseText = firstRate.type === 'fixed'
@@ -22,10 +24,17 @@ export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPay
             : `MRR ${firstRate.value >= 0 ? '+' : ''}${firstRate.value}%`;
 
         return loan.rates.length > 1 ? `${baseText} (Variable)` : `${baseText}`;
-    };
+    }, [loan.rates]);
 
-    const totalInterest = series.reduce((sum, item) => sum + item.interest, 0);
-    const totalPaid = series.reduce((sum, item) => sum + item.amount, 0);
+    const totalInterest = useMemo(() => 
+        series.reduce((sum, item) => sum + item.interest, 0),
+        [series]
+    );
+
+    const totalPaid = useMemo(() => 
+        series.reduce((sum, item) => sum + item.amount, 0),
+        [series]
+    );
 
     return (
         <Grid container spacing={3}>
@@ -43,7 +52,7 @@ export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPay
                 <SummaryCard
                     title="Interest Paid"
                     value={totalInterest}
-                    subtitle={`Rate: ${getRateDisplay()} / year`}
+                    subtitle={`Rate: ${getRateDisplay} / year`}
                     valueColor="error.main"
                     icon="up"
                 />
@@ -60,4 +69,6 @@ export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPay
             </Grid>
         </Grid>
     );
-};
+});
+
+LoanSummary.displayName = 'LoanSummary';

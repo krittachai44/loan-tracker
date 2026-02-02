@@ -19,10 +19,12 @@ import type { Loan } from '../types';
 
 interface AppHeaderProps {
     loanName: string;
-    loan: Loan;
+    loan?: Loan;
+    hideActions?: boolean;
+    actions?: React.ReactNode;
 }
 
-export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan }) => {
+export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideActions = false, actions }) => {
     const [confirmOpen, setConfirmOpen] = React.useState(false);
     const { mode, toggleTheme } = useThemeMode();
 
@@ -100,37 +102,40 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan }) => {
                 </Box>
 
                 {/* Actions */}
-                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                    <DataExportImport loan={loan} />
-                    
-                    {/* Theme Toggle Button */}
-                    <IconButton 
-                        onClick={toggleTheme}
-                        size="small"
-                        sx={{
-                            color: 'text.secondary',
-                            '&:hover': {
-                                backgroundColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.08)'
-                            }
-                        }}
-                        aria-label="toggle theme"
-                    >
-                        {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
-                    </IconButton>
-                    
-                    <IconButton 
-                        onClick={handleResetClick}
-                        size="small"
-                        sx={{
-                            color: 'error.main',
-                            '&:hover': {
-                                backgroundColor: 'rgba(239, 68, 68, 0.08)'
-                            }
-                        }}
-                    >
-                        <Refresh fontSize="small" />
-                    </IconButton>
-                </Box>
+                {!hideActions && (
+                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                        {loan && <DataExportImport loan={loan} />}
+                        
+                        {/* Theme Toggle Button */}
+                        <IconButton 
+                            onClick={toggleTheme}
+                            size="small"
+                            sx={{
+                                color: 'text.secondary',
+                                '&:hover': {
+                                    backgroundColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.08)'
+                                }
+                            }}
+                            aria-label="toggle theme"
+                        >
+                            {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
+                        </IconButton>
+                        
+                        <IconButton 
+                            onClick={handleResetClick}
+                            size="small"
+                            sx={{
+                                color: 'error.main',
+                                '&:hover': {
+                                    backgroundColor: 'rgba(239, 68, 68, 0.08)'
+                                }
+                            }}
+                        >
+                            <Refresh fontSize="small" />
+                        </IconButton>
+                    </Box>
+                )}
+                {actions && <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>{actions}</Box>}
             </Toolbar>
 
             {/* Reset Confirmation Dialog */}
