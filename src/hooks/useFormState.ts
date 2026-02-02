@@ -1,5 +1,4 @@
 import { useState, useCallback } from 'react';
-import { formatNumberInput, parseFormattedNumber } from '../utils';
 
 interface UseNumberInputOptions {
   min?: number;
@@ -18,7 +17,8 @@ interface UseNumberInputReturn {
 }
 
 /**
- * Custom hook for handling formatted number inputs with validation
+ * Custom hook for handling number inputs with validation
+ * Only allows numbers and one decimal point
  */
 export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberInputReturn => {
   const { min, max, initialValue = '' } = options;
@@ -26,7 +26,7 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
     typeof initialValue === 'number' ? initialValue.toString() : initialValue
   );
 
-  const numericValue = parseFloat(parseFormattedNumber(value)) || 0;
+  const numericValue = parseFloat(value) || 0;
 
   const isValid = 
     (!min || numericValue >= min) && 
@@ -42,8 +42,21 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
     }
   }
 
+  const handleSetValue = useCallback((val: string) => {
+    // Remove any character that's not a digit or decimal point
+    const cleaned = val.replace(/[^0-9.]/g, '');
+    
+    // Ensure only one decimal point
+    const parts = cleaned.split('.');
+    const sanitized = parts.length > 2 
+      ? `${parts[0]}.${parts.slice(1).join('')}` 
+      : cleaned;
+    
+    setValue(sanitized);
+  }, []);
+
   const setNumericValue = useCallback((num: number) => {
-    setValue(formatNumberInput(num.toString()));
+    setValue(num.toString());
   }, []);
 
   const reset = useCallback(() => {
@@ -53,7 +66,7 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
   return {
     value,
     numericValue,
-    setValue: (val: string) => setValue(formatNumberInput(val)),
+    setValue: handleSetValue,
     setNumericValue,
     reset,
     isValid,

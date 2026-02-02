@@ -6,7 +6,7 @@ import { Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { useNumberInput, useDateInput } from '../hooks';
-import { ALLOWED_NUMBER_KEYS, ALLOWED_CTRL_KEYS, ALLOWED_NAVIGATION_KEYS, VALIDATION } from '../constants';
+import { VALIDATION } from '../constants';
 import type { Payment } from '../types';
 
 interface PaymentFormProps {
@@ -14,14 +14,6 @@ interface PaymentFormProps {
     initialPayment?: Payment;
     onComplete?: () => void;
 }
-
-// Validation helper for number inputs
-const isValidNumberKey = (key: string, ctrlKey: boolean): boolean => {
-  if ((ALLOWED_NUMBER_KEYS as readonly string[]).includes(key)) return true;
-  if (ctrlKey && (ALLOWED_CTRL_KEYS as readonly string[]).includes(key.toLowerCase())) return true;
-  if ((ALLOWED_NAVIGATION_KEYS as readonly string[]).includes(key)) return true;
-  return /^[0-9]$/.test(key);
-};
 
 export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onComplete }) => {
     const amount = useNumberInput({ 
@@ -67,23 +59,6 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
         onComplete?.();
     }, [loanId, amount, date, note, initialPayment, onComplete]);
 
-    const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
-        if (!isValidNumberKey(e.key, e.ctrlKey)) {
-            e.preventDefault();
-        }
-    }, []);
-
-    const handlePaste = useCallback((e: React.ClipboardEvent<HTMLInputElement>) => {
-        e.preventDefault();
-        const pastedText = e.clipboardData.getData('text');
-        const numericOnly = pastedText.replace(/[^0-9.]/g, '');
-        const target = e.target as HTMLInputElement;
-        const start = target.selectionStart || 0;
-        const end = target.selectionEnd || 0;
-        const newValue = amount.value.slice(0, start) + numericOnly + amount.value.slice(end);
-        amount.setValue(newValue);
-    }, [amount]);
-
     return (
         <Card>
             <CardHeader>
@@ -104,8 +79,6 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
                                 placeholder="0.00"
                                 value={amount.value}
                                 onChange={(e) => amount.setValue(e.target.value)}
-                                onKeyDown={handleKeyDown}
-                                onPaste={handlePaste}
                                 required
                                 size="small"
                                 error={!amount.isValid && !!amount.value}
