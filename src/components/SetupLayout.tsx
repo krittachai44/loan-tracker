@@ -203,11 +203,12 @@ export const SetupLayout: React.FC = () => {
                         variant="outlined" 
                         sx={{ 
                             p: 2, 
-                            bgcolor: 'grey.50',
+                            bgcolor: 'background.paper',
                             fontFamily: 'monospace',
                             fontSize: '0.875rem',
                             overflow: 'auto',
-                            maxHeight: '60vh'
+                            maxHeight: '60vh',
+                            color: 'text.primary'
                         }}
                     >
                         <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
