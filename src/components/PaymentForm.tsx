@@ -42,7 +42,7 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
             date.reset();
             setNote('');
         }
-    }, [initialPayment, amount, date]);
+    }, [initialPayment?.id, initialPayment?.amount, initialPayment?.date, initialPayment?.note, amount.setNumericValue, date.setDateValue, amount.reset, date.reset]);
 
     const handleSubmit = useCallback(async (e: React.FormEvent) => {
         e.preventDefault();

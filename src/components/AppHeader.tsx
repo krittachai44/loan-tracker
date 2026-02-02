@@ -102,25 +102,25 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
                 </Box>
 
                 {/* Actions */}
-                {!hideActions && (
-                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-                        {loan && <DataExportImport loan={loan} />}
-                        
-                        {/* Theme Toggle Button */}
-                        <IconButton 
-                            onClick={toggleTheme}
-                            size="small"
-                            sx={{
-                                color: 'text.secondary',
-                                '&:hover': {
-                                    backgroundColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.08)'
-                                }
-                            }}
-                            aria-label="toggle theme"
-                        >
-                            {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
-                        </IconButton>
-                        
+                <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+                    {!hideActions && loan && <DataExportImport loan={loan} />}
+                    
+                    {/* Theme Toggle Button - Always visible */}
+                    <IconButton 
+                        onClick={toggleTheme}
+                        size="small"
+                        sx={{
+                            color: 'text.secondary',
+                            '&:hover': {
+                                backgroundColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.08)'
+                            }
+                        }}
+                        aria-label="toggle theme"
+                    >
+                        {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
+                    </IconButton>
+                    
+                    {!hideActions && (
                         <IconButton 
                             onClick={handleResetClick}
                             size="small"
@@ -133,9 +133,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
                         >
                             <Refresh fontSize="small" />
                         </IconButton>
-                    </Box>
-                )}
-                {actions && <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>{actions}</Box>}
+                    )}
+                    
+                    {actions}
+                </Box>
             </Toolbar>
 
             {/* Reset Confirmation Dialog */}
