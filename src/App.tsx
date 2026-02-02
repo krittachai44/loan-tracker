@@ -1,35 +1,67 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { useLiveQuery } from 'dexie-react-hooks';
+import { Box, Container, Grid, Stack } from '@mui/material';
+import { db } from './db';
+import { SetupLayout } from './components/SetupLayout';
+import { AppHeader } from './components/AppHeader';
+import { LoanSummary } from './components/LoanSummary';
+import { PaymentList } from './components/PaymentList';
+import { LoanGraph } from './components/LoanGraph';
+import { DashboardSidebar } from './components/DashboardSidebar';
+import { calculateLoanSeries } from './utils';
 
 function App() {
-  const [count, setCount] = useState(0)
+  const loans = useLiveQuery(() => db.loans.toArray());
+  const payments = useLiveQuery(() => db.payments.toArray());
+  const referenceRates = useLiveQuery(() => db.referenceRates.toArray());
+
+  // Show loading state
+  if (!loans) {
+    return (
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', color: 'text.secondary' }}>
+        Loading...
+      </Box>
+    );
+  }
+
+  // Initial Setup Flow
+  if (loans.length === 0) {
+    return <SetupLayout />;
+  }
+
+  const activeLoan = loans[0];
+  const loanPayments = payments?.filter(p => p.loanId === activeLoan.id!) || [];
+  const series = calculateLoanSeries(activeLoan, loanPayments, referenceRates || []);
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    <Box sx={{ minHeight: '100vh', pb: 20 }}>
+      <AppHeader loanName={activeLoan.name} />
+
+      <Container maxWidth="xl" sx={{ py: 4 }}>
+        <Stack spacing={4}>
+          <LoanSummary
+            loan={activeLoan}
+            series={series}
+            totalPayments={loanPayments.length}
+          />
+
+          <Grid container spacing={3}>
+            {/* Main Content Area (Left) */}
+            <Grid item xs={12} lg={9}>
+              <Stack spacing={3}>
+                <LoanGraph data={series} />
+                <PaymentList logs={series.filter(s => s.isPayment)} />
+              </Stack>
+            </Grid>
+
+            {/* Sidebar Area (Right) */}
+            <Grid item xs={12} lg={3}>
+              <DashboardSidebar loan={activeLoan} />
+            </Grid>
+          </Grid>
+        </Stack>
+      </Container>
+    </Box>
+  );
 }
 
-export default App
+export default App;
