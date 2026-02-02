@@ -1,9 +1,6 @@
 import * as React from 'react';
 import { 
     Box, 
-    AppBar, 
-    Toolbar, 
-    Typography, 
     IconButton, 
     Tooltip,
     Snackbar,
@@ -14,9 +11,11 @@ import {
     DialogActions,
     Button,
     Paper,
-    Divider
+    Divider,
+    Typography
 } from '@mui/material';
 import { FileUpload, HelpOutline, Download, Info } from '@mui/icons-material';
+import { AppHeader } from './AppHeader';
 import { LoanSetup } from './LoanSetup';
 import { MRRManager } from './MRRManager';
 import { useCSVImport } from '../hooks/useCSVImport';
@@ -97,66 +96,11 @@ export const SetupLayout: React.FC = () => {
     return (
         <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
             {/* Header Bar */}
-            <AppBar 
-                position="sticky" 
-                elevation={0}
-                sx={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(12px)',
-                    borderBottom: '1px solid',
-                    borderColor: 'rgba(148, 163, 184, 0.1)',
-                    color: 'text.primary'
-                }}
-            >
-                <Toolbar sx={{ minHeight: { xs: 64, sm: 72 } }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flex: 1 }}>
-                        {/* Logo Icon */}
-                        <Box
-                            sx={{
-                                width: 40,
-                                height: 40,
-                                borderRadius: 2,
-                                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                color: 'white',
-                                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
-                            }}
-                        >
-                            <FileUpload sx={{ fontSize: 22 }} />
-                        </Box>
-                        
-                        {/* Title */}
-                        <Box>
-                            <Typography 
-                                variant="caption" 
-                                sx={{ 
-                                    color: 'text.secondary',
-                                    fontSize: '0.75rem',
-                                    fontWeight: 500,
-                                    textTransform: 'uppercase',
-                                    letterSpacing: '0.05em'
-                                }}
-                            >
-                                Loan Tracker
-                            </Typography>
-                            <Typography 
-                                variant="h6" 
-                                sx={{ 
-                                    fontWeight: 700,
-                                    fontSize: '1.125rem',
-                                    letterSpacing: '-0.01em',
-                                    lineHeight: 1.2
-                                }}
-                            >
-                                Initial Setup
-                            </Typography>
-                        </Box>
-                    </Box>
-                    
-                    {/* Actions */}
-                    <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
+            <AppHeader 
+                loanName="Initial Setup"
+                hideActions
+                actions={
+                    <>
                         <Tooltip title="View Sample Format">
                             <IconButton 
                                 onClick={() => setSampleDialogOpen(true)}
@@ -186,18 +130,17 @@ export const SetupLayout: React.FC = () => {
                                 <FileUpload fontSize="small" />
                             </IconButton>
                         </Tooltip>
-                    </Box>
-                    
-                    <input
-                        ref={fileInputRef}
-                        type="file"
-                        accept={ACCEPTED_FILE_TYPES}
-                        style={{ display: 'none' }}
-                        onChange={handleFileUpload}
-                        disabled={isImporting}
-                    />
-                </Toolbar>
-            </AppBar>
+                        <input
+                            ref={fileInputRef}
+                            type="file"
+                            accept={ACCEPTED_FILE_TYPES}
+                            style={{ display: 'none' }}
+                            onChange={handleFileUpload}
+                            disabled={isImporting}
+                        />
+                    </>
+                }
+            />
 
             {/* Main Content */}
             <Box sx={{ display: 'flex', gap: 6, p: 6 }}>
