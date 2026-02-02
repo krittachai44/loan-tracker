@@ -276,3 +276,124 @@ export const calculateLoanSeries = (loan: Loan, payments: Payment[], referenceRa
 
     return logs;
 };
+
+/**
+ * Calculate loan payoff prediction based on recent payment history
+ * Uses last 12 payments to estimate average payment and projects payoff timeline
+ */
+export interface PayoffPrediction {
+    averagePayment: number;
+    estimatedMonthsLeft: number;
+    estimatedYearsLeft: number;
+    estimatedPayoffDate: Date;
+    totalEstimatedInterest: number;
+    confidence: 'high' | 'medium' | 'low';
+}
+
+export const calculatePayoffPrediction = (
+    loan: Loan,
+    payments: Payment[],
+    currentBalance: number,
+    referenceRates: ReferenceRate[] = [],
+    currentDate: Date = new Date()
+): PayoffPrediction | null => {
+    // Need at least 3 payments for meaningful prediction
+    if (payments.length < 3 || currentBalance <= 0) {
+        return null;
+    }
+
+    // Get last 12 payments (or all if less than 12)
+    const recentPayments = [...payments]
+        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+        .slice(0, Math.min(12, payments.length));
+
+    // Calculate average payment amount
+    const totalPaid = recentPayments.reduce((sum, p) => sum + p.amount, 0);
+    const averagePayment = totalPaid / recentPayments.length;
+
+    // Calculate average days between payments
+    const paymentDates = recentPayments
+        .map(p => new Date(p.date))
+        .sort((a, b) => a.getTime() - b.getTime());
+    
+    let totalDaysBetween = 0;
+    for (let i = 1; i < paymentDates.length; i++) {
+        totalDaysBetween += differenceInCalendarDays(paymentDates[i], paymentDates[i - 1]);
+    }
+    const avgDaysBetweenPayments = paymentDates.length > 1 
+        ? totalDaysBetween / (paymentDates.length - 1) 
+        : 30;
+
+    // Get current effective annual rate
+    const sortedRates = [...loan.rates].sort((a, b) => 
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+    );
+    const activeRateObj = findActiveRate(currentDate, sortedRates, `payoff-${loan.id}-${currentDate.toISOString()}`);
+    
+    let currentRate = activeRateObj.value;
+    if (activeRateObj.type === 'float' && referenceRates.length > 0) {
+        // For floating rates, use the most recent MRR
+        const sortedMRR = [...referenceRates].sort((a, b) => 
+            new Date(a.date).getTime() - new Date(b.date).getTime()
+        );
+        const activeMRR = sortedMRR.reduce((prev, curr) => {
+            return new Date(curr.date) <= currentDate ? curr : prev;
+        }, sortedMRR[0]);
+        currentRate = (activeMRR?.rate || 0) + activeRateObj.value;
+    }
+    
+    const dailyRate = currentRate / DAYS_IN_YEAR / 100;
+
+    // Simulate loan payoff with average payment
+    let balance = currentBalance;
+    let projectedDate = new Date(currentDate);
+    let monthsCount = 0;
+    let totalInterest = 0;
+    const maxIterations = 600; // Safety limit (50 years)
+
+    while (balance > 0.01 && monthsCount < maxIterations) {
+        // Calculate interest for the payment period
+        const periodInterest = balance * dailyRate * avgDaysBetweenPayments;
+        
+        // Apply payment
+        const principalPayment = Math.min(averagePayment - periodInterest, balance);
+        
+        if (principalPayment <= 0) {
+            // Payment doesn't cover interest - loan won't be paid off
+            return null;
+        }
+
+        balance -= principalPayment;
+        totalInterest += periodInterest;
+        
+        // Move forward by average payment period
+        projectedDate = new Date(projectedDate.getTime() + avgDaysBetweenPayments * 24 * 60 * 60 * 1000);
+        monthsCount += avgDaysBetweenPayments / 30;
+    }
+
+    // Determine confidence level
+    const paymentCount = recentPayments.length;
+    let confidence: 'high' | 'medium' | 'low' = 'low';
+    if (paymentCount >= 12) confidence = 'high';
+    else if (paymentCount >= 6) confidence = 'medium';
+
+    // Calculate standard deviation of payments to adjust confidence
+    const avgAmount = averagePayment;
+    const variance = recentPayments.reduce((sum, p) => sum + Math.pow(p.amount - avgAmount, 2), 0) / paymentCount;
+    const stdDev = Math.sqrt(variance);
+    const coefficientOfVariation = stdDev / avgAmount;
+
+    // High variation in payments = lower confidence
+    if (coefficientOfVariation > 0.3) {
+        confidence = confidence === 'high' ? 'medium' : 'low';
+    }
+
+    return {
+        averagePayment,
+        estimatedMonthsLeft: Math.round(monthsCount),
+        estimatedYearsLeft: parseFloat((monthsCount / 12).toFixed(1)),
+        estimatedPayoffDate: projectedDate,
+        totalEstimatedInterest: totalInterest,
+        confidence
+    };
+};

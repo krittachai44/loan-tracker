@@ -3,10 +3,10 @@ import { Box, Typography } from '@mui/material';
 import { format } from 'date-fns';
 import { db } from '../db';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
+import { Input, AmountInput } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { formatNumberInput, parseFormattedNumber } from '../utils';
+import { useNumberInput } from '../hooks';
 import type { Loan } from '../types';
 
 interface LoanDetailsManagerProps {
@@ -18,20 +18,20 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
 
     // Local state
     const [name, setName] = React.useState(loan.name);
-    const [principal, setPrincipal] = React.useState(loan.principal.toString());
+    const principal = useNumberInput({ initialValue: loan.principal, min: 0 });
     const [isoStartDate, setIsoStartDate] = React.useState(loan.startDate.toISOString().split('T')[0]);
 
     // Reset when loan changes or edit mode toggles
     React.useEffect(() => {
         if (!isEditing) {
             setName(loan.name);
-            setPrincipal(loan.principal.toString());
+            principal.setNumericValue(loan.principal);
             setIsoStartDate(loan.startDate.toISOString().split('T')[0]);
         }
-    }, [loan, isEditing]);
+    }, [loan, isEditing, principal.setNumericValue]);
 
     const handleSave = async () => {
-        if (!name || !principal || !isoStartDate) {
+        if (!name || !principal.isValid || !isoStartDate) {
             alert("Please fill in all fields.");
             return;
         }
@@ -39,7 +39,7 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
         if (loan.id) {
             await db.loans.update(loan.id, {
                 name,
-                principal: parseFloat(parseFormattedNumber(principal)),
+                principal: principal.numericValue,
                 startDate: new Date(isoStartDate)
             });
             setIsEditing(false);
@@ -93,32 +93,12 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
                         />
                     </Box>
                     <Box>
-                        <Input
-                            type="text"
-                            value={principal}
-                            onChange={(e) => setPrincipal(formatNumberInput(e.target.value))}
-                            onKeyDown={(e) => {
-                                // Allow: backspace, delete, tab, escape, enter, decimal point
-                                if (["Backspace", "Delete", "Tab", "Escape", "Enter", "."].includes(e.key) ||
-                                    // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                                    (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) ||
-                                    // Allow: arrow keys
-                                    ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-                                    return;
-                                }
-                                // Prevent if not a number
-                                if (!/^[0-9]$/.test(e.key)) {
-                                    e.preventDefault();
-                                }
-                            }}
-                            onPaste={(e) => {
-                                e.preventDefault();
-                                const pastedText = e.clipboardData.getData('text');
-                                const numericOnly = pastedText.replace(/[^0-9.]/g, '');
-                                setPrincipal(formatNumberInput(principal.slice(0, (e.target as HTMLInputElement).selectionStart || 0) + numericOnly + principal.slice((e.target as HTMLInputElement).selectionEnd || 0)));
-                            }}
+                        <AmountInput
                             label="Principal Amount"
+                            value={principal.value}
+                            onChange={principal.setValue}
                             size="small"
+                            error={!principal.isValid && !!principal.value}
                         />
                     </Box>
                     <Box>

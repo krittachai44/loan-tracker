@@ -1,19 +1,23 @@
 import * as React from 'react';
 import { Typography, Box, Paper } from '@mui/material';
-import { TrendingUp, TrendingDown, AttachMoney } from '@mui/icons-material';
+import { TrendingUp, TrendingDown, AttachMoney, Schedule } from '@mui/icons-material';
 
 interface SummaryCardProps {
     title: string;
     value: string | number;
+    valuePrefix?: string;
+    valueSuffix?: string;
     subtitle?: string;
     valueColor?: string;
     gradient?: string;
-    icon?: 'up' | 'down' | 'money';
+    icon?: 'up' | 'down' | 'money' | 'time';
 }
 
 export const SummaryCard: React.FC<SummaryCardProps> = ({
     title,
     value,
+    valuePrefix,
+    valueSuffix,
     subtitle,
     valueColor,
     gradient,
@@ -29,6 +33,7 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
             case 'up': return <TrendingUp {...iconProps} />;
             case 'down': return <TrendingDown {...iconProps} />;
             case 'money': return <AttachMoney {...iconProps} />;
+            case 'time': return <Schedule {...iconProps} />;
             default: return null;
         }
     };
@@ -120,10 +125,12 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
                         color: valueColor
                     }}
                 >
+                    {valuePrefix}
                     {typeof value === 'number'
                         ? value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                         : value
                     }
+                    {valueSuffix}
                 </Typography>
 
                 {/* Subtitle */}

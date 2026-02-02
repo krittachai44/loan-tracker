@@ -4,6 +4,7 @@ interface UseNumberInputOptions {
   min?: number;
   max?: number;
   initialValue?: string | number;
+  allowNegative?: boolean;
 }
 
 interface UseNumberInputReturn {
@@ -21,7 +22,7 @@ interface UseNumberInputReturn {
  * Only allows numbers and one decimal point
  */
 export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberInputReturn => {
-  const { min, max, initialValue = '' } = options;
+  const { min, max, initialValue = '', allowNegative = false } = options;
   const [value, setValue] = useState(() => 
     typeof initialValue === 'number' ? initialValue.toString() : initialValue
   );
@@ -43,17 +44,31 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
   }
 
   const handleSetValue = useCallback((val: string) => {
-    // Remove any character that's not a digit or decimal point
-    const cleaned = val.replace(/[^0-9.]/g, '');
+    // Remove any character that's not a digit, decimal point, or minus (if allowed)
+    const pattern = allowNegative ? /[^0-9.-]/g : /[^0-9.]/g;
+    const cleaned = val.replace(pattern, '');
+    
+    // Handle negative sign - only allow at the start
+    let processed = cleaned;
+    if (allowNegative) {
+      const minusCount = (cleaned.match(/-/g) || []).length;
+      if (minusCount > 0) {
+        const hasLeadingMinus = cleaned.startsWith('-');
+        processed = cleaned.replace(/-/g, '');
+        if (hasLeadingMinus) {
+          processed = '-' + processed;
+        }
+      }
+    }
     
     // Ensure only one decimal point
-    const parts = cleaned.split('.');
+    const parts = processed.split('.');
     const sanitized = parts.length > 2 
       ? `${parts[0]}.${parts.slice(1).join('')}` 
-      : cleaned;
+      : processed;
     
     setValue(sanitized);
-  }, []);
+  }, [allowNegative]);
 
   const setNumericValue = useCallback((num: number) => {
     setValue(num.toString());
