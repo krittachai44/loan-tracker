@@ -57,7 +57,7 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
                         </Button>
                     </Box>
                 </CardHeader>
-                <CardContent sx={{ pt: 0 }}>
+                <CardContent>
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
                             <Typography variant="body2" color="textSecondary">Name</Typography>
