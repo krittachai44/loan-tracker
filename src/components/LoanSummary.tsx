@@ -35,6 +35,7 @@ export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPay
                     value={currentStatus.remainingPrincipal}
                     subtitle={`Started: ${loan.principal.toLocaleString()}`}
                     gradient={`linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`}
+                    icon="money"
                 />
             </Grid>
 
@@ -44,6 +45,7 @@ export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPay
                     value={totalInterest}
                     subtitle={`Rate: ${getRateDisplay()} / year`}
                     valueColor="error.main"
+                    icon="up"
                 />
             </Grid>
 
@@ -53,6 +55,7 @@ export const LoanSummary: React.FC<LoanSummaryProps> = ({ loan, series, totalPay
                     value={totalPaid}
                     subtitle={`${totalPayments} payments made`}
                     valueColor="success.main"
+                    icon="down"
                 />
             </Grid>
         </Grid>

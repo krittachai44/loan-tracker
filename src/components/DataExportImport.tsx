@@ -1,10 +1,12 @@
 import * as React from 'react';
-import { Box, Typography, Stack, Divider } from '@mui/material';
+import { 
+    IconButton,
+    Tooltip
+} from '@mui/material';
+import { FileDownload, FileUpload } from '@mui/icons-material';
 import * as XLSX from 'xlsx';
 import { db } from '../db';
 import { type Loan, type Payment, type ReferenceRate } from '../types';
-import { Button } from './ui/Button';
-import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 
 interface Props {
     loan: Loan;
@@ -266,7 +268,7 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
         }
     };
 
-    const handleFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImport = (event: React.ChangeEvent<HTMLInputElement>) => {
         const file = event.target.files?.[0];
         if (file) {
             importFromFile(file);
@@ -276,58 +278,49 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
     };
 
     return (
-        <Card>
-            <CardHeader>
-                <CardTitle>Export / Import</CardTitle>
-            </CardHeader>
-            <CardContent>
-                <Stack spacing={2}>
-                    <Box>
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
-                            Export Data
-                        </Typography>
-                        <Button
-                            onClick={exportToCSV}
-                            size="sm"
-                            variant="outline"
-                            fullWidth
-                        >
-                            Download CSV
-                        </Button>
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
-                            Exports loan details, rates, payments, and reference rates
-                        </Typography>
-                    </Box>
+        <>
+            {/* Hidden file input */}
+            <input
+                ref={fileInputRef}
+                type="file"
+                accept=".xlsx,.xls,.csv"
+                onChange={handleImport}
+                style={{ display: 'none' }}
+            />
 
-                    <Divider />
+            {/* Export Button */}
+            <Tooltip title="Export Data" arrow>
+                <IconButton 
+                    onClick={exportToCSV}
+                    size="small"
+                    sx={{
+                        color: 'success.main',
+                        '&:hover': {
+                            backgroundColor: 'rgba(16, 185, 129, 0.08)'
+                        }
+                    }}
+                >
+                    <FileDownload fontSize="small" />
+                </IconButton>
+            </Tooltip>
 
-                    <Box>
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mb: 1 }}>
-                            Import Data
-                        </Typography>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept=".xlsx,.xls,.csv"
-                            onChange={handleFileSelect}
-                            style={{ display: 'none' }}
-                        />
-                        <Button
-                            onClick={() => fileInputRef.current?.click()}
-                            size="sm"
-                            variant="outline"
-                            fullWidth
-                            disabled={!!importStatus}
-                        >
-                            {importStatus || 'Upload Excel/CSV'}
-                        </Button>
-                        <Typography variant="caption" color="textSecondary" sx={{ display: 'block', mt: 0.5 }}>
-                            ⚠️ This will replace all current data
-                        </Typography>
-                    </Box>
-                </Stack>
-            </CardContent>
-        </Card>
+            {/* Import Button */}
+            <Tooltip title="Import Data" arrow>
+                <IconButton 
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={!!importStatus}
+                    size="small"
+                    sx={{
+                        color: 'info.main',
+                        '&:hover': {
+                            backgroundColor: 'rgba(59, 130, 246, 0.08)'
+                        }
+                    }}
+                >
+                    <FileUpload fontSize="small" />
+                </IconButton>
+            </Tooltip>
+        </>
     );
 };
 
