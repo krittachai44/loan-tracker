@@ -1,5 +1,12 @@
 import { describe, it, expect } from 'vitest';
-import { calculateLoanSeries, formatNumberInput, formatDateForDisplay } from '../utils';
+import { 
+  calculateLoanSeries, 
+  formatNumberInput, 
+  formatDateForDisplay,
+  parseFormattedNumber,
+  parseDateFromInput,
+  formatDateInput
+} from '../utils';
 import type { Loan, Payment, ReferenceRate } from '../types';
 
 describe('Utils', () => {
@@ -22,6 +29,41 @@ describe('Utils', () => {
       expect(formatNumberInput('1.1')).toBe('1.1');
       expect(formatNumberInput('1.111')).toBe('1.111');
     });
+
+    it('should handle multiple decimal points', () => {
+      expect(formatNumberInput('1.2.3')).toBe('1.23');
+      expect(formatNumberInput('100.200.300')).toBe('100.200300');
+    });
+
+    it('should handle empty string', () => {
+      expect(formatNumberInput('')).toBe('');
+    });
+
+    it('should remove non-numeric characters', () => {
+      expect(formatNumberInput('abc123def')).toBe('123');
+      expect(formatNumberInput('$1,000')).toBe('1,000');
+    });
+  });
+
+  describe('parseFormattedNumber', () => {
+    it('should remove commas from formatted numbers', () => {
+      expect(parseFormattedNumber('1,000')).toBe('1000');
+      expect(parseFormattedNumber('1,000,000')).toBe('1000000');
+      expect(parseFormattedNumber('123,456.789')).toBe('123456.789');
+    });
+
+    it('should handle numbers without commas', () => {
+      expect(parseFormattedNumber('1000')).toBe('1000');
+      expect(parseFormattedNumber('123.45')).toBe('123.45');
+    });
+
+    it('should handle empty string', () => {
+      expect(parseFormattedNumber('')).toBe('');
+    });
+
+    it('should handle zero', () => {
+      expect(parseFormattedNumber('0')).toBe('0');
+    });
   });
 
   describe('formatDateForDisplay', () => {
@@ -32,6 +74,86 @@ describe('Utils', () => {
 
     it('should handle empty string', () => {
       expect(formatDateForDisplay('')).toBe('');
+    });
+
+    it('should handle single digit days and months', () => {
+      expect(formatDateForDisplay('2024-01-01')).toBe('01/01/2024');
+      expect(formatDateForDisplay('2024-05-09')).toBe('09/05/2024');
+    });
+  });
+
+  describe('parseDateFromInput', () => {
+    it('should convert DD/MM/YYYY to YYYY-MM-DD', () => {
+      expect(parseDateFromInput('15/01/2024')).toBe('2024-01-15');
+      expect(parseDateFromInput('31/12/2024')).toBe('2024-12-31');
+      expect(parseDateFromInput('01/01/2024')).toBe('2024-01-01');
+    });
+
+    it('should handle input without slashes', () => {
+      expect(parseDateFromInput('15012024')).toBe('2024-01-15');
+      expect(parseDateFromInput('31122024')).toBe('2024-12-31');
+    });
+
+    it('should return original if incomplete', () => {
+      expect(parseDateFromInput('15')).toBe('15');
+      expect(parseDateFromInput('1501')).toBe('1501');
+      expect(parseDateFromInput('150120')).toBe('150120');
+    });
+
+    it('should handle empty string', () => {
+      expect(parseDateFromInput('')).toBe('');
+    });
+
+    it('should validate date ranges', () => {
+      expect(parseDateFromInput('00/01/2024')).toBe('00/01/2024'); // invalid day
+      expect(parseDateFromInput('32/01/2024')).toBe('32/01/2024'); // invalid day
+      expect(parseDateFromInput('15/00/2024')).toBe('15/00/2024'); // invalid month
+      expect(parseDateFromInput('15/13/2024')).toBe('15/13/2024'); // invalid month
+    });
+
+    it('should handle non-numeric characters', () => {
+      expect(parseDateFromInput('abc')).toBe('abc');
+      expect(parseDateFromInput('15/ab/2024')).toBe('15/ab/2024');
+    });
+  });
+
+  describe('formatDateInput', () => {
+    it('should format as user types', () => {
+      expect(formatDateInput('1')).toBe('1');
+      expect(formatDateInput('15')).toBe('15');
+      expect(formatDateInput('150')).toBe('15/0');
+      expect(formatDateInput('1501')).toBe('15/01');
+      expect(formatDateInput('15012')).toBe('15/01/2');
+      expect(formatDateInput('150120')).toBe('15/01/20');
+      expect(formatDateInput('1501202')).toBe('15/01/202');
+      expect(formatDateInput('15012024')).toBe('15/01/2024');
+    });
+
+    it('should handle existing slashes by rebuilding format', () => {
+      // The function removes slashes and rebuilds, so '15/' becomes '15'
+      expect(formatDateInput('15/')).toBe('15');
+      expect(formatDateInput('15/01')).toBe('15/01');
+      // '15/01/' has digits '1501', which formats as '15/01'
+      expect(formatDateInput('15/01/')).toBe('15/01');
+      expect(formatDateInput('15/01/2024')).toBe('15/01/2024');
+    });
+
+    it('should handle empty string', () => {
+      expect(formatDateInput('')).toBe('');
+    });
+
+    it('should remove non-numeric characters except slashes', () => {
+      expect(formatDateInput('15abc01def2024')).toBe('15/01/2024');
+      expect(formatDateInput('1a5/0b1/2c0d2e4f')).toBe('15/01/2024');
+    });
+
+    it('should truncate at 10 characters (DD/MM/YYYY)', () => {
+      expect(formatDateInput('150120241234')).toBe('15/01/2024');
+    });
+
+    it('should rebuild slashes even if user adds extra', () => {
+      expect(formatDateInput('15//01//2024')).toBe('15/01/2024');
+      expect(formatDateInput('1/5/0/1/2/0/2/4')).toBe('15/01/2024');
     });
   });
 

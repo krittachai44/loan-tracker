@@ -11,9 +11,10 @@ import {
     DialogActions,
     Button
 } from '@mui/material';
-import { Refresh, AccountBalance, Warning } from '@mui/icons-material';
+import { Refresh, AccountBalance, Warning, Brightness4, Brightness7 } from '@mui/icons-material';
 import { resetDatabase } from '../db';
 import { DataExportImport } from './DataExportImport';
+import { useThemeMode } from '../ThemeContext';
 import type { Loan } from '../types';
 
 interface AppHeaderProps {
@@ -23,6 +24,7 @@ interface AppHeaderProps {
 
 export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan }) => {
     const [confirmOpen, setConfirmOpen] = React.useState(false);
+    const { mode, toggleTheme } = useThemeMode();
 
     const handleResetClick = () => {
         setConfirmOpen(true);
@@ -43,10 +45,10 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan }) => {
             position="sticky" 
             elevation={0}
             sx={{
-                backgroundColor: 'rgba(255, 255, 255, 0.8)',
+                backgroundColor: mode === 'dark' ? 'rgba(30, 41, 59, 0.8)' : 'rgba(255, 255, 255, 0.8)',
                 backdropFilter: 'blur(12px)',
                 borderBottom: '1px solid',
-                borderColor: 'rgba(148, 163, 184, 0.1)',
+                borderColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.2)' : 'rgba(148, 163, 184, 0.1)',
                 color: 'text.primary'
             }}
         >
@@ -100,6 +102,22 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan }) => {
                 {/* Actions */}
                 <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
                     <DataExportImport loan={loan} />
+                    
+                    {/* Theme Toggle Button */}
+                    <IconButton 
+                        onClick={toggleTheme}
+                        size="small"
+                        sx={{
+                            color: 'text.secondary',
+                            '&:hover': {
+                                backgroundColor: mode === 'dark' ? 'rgba(148, 163, 184, 0.15)' : 'rgba(99, 102, 241, 0.08)'
+                            }
+                        }}
+                        aria-label="toggle theme"
+                    >
+                        {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
+                    </IconButton>
+                    
                     <IconButton 
                         onClick={handleResetClick}
                         size="small"
