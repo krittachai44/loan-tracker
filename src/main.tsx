@@ -3,12 +3,12 @@ import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import './index.css'
-import { theme } from './theme'
+import { modernTheme } from './modernTheme'
 import App from './App.tsx'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={modernTheme}>
       <CssBaseline />
       <App />
     </ThemeProvider>
