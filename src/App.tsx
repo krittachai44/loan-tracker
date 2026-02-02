@@ -28,7 +28,7 @@ const LoadingState = memo(() => (
 LoadingState.displayName = 'LoadingState';
 
 function App() {
-  const { activeLoan, loanPayments, series, isLoading } = useLoanData();
+  const { activeLoan, loanPayments, series, referenceRates, isLoading } = useLoanData();
 
   // Show loading state
   if (isLoading) {
@@ -57,6 +57,8 @@ function App() {
               loan={activeLoan}
               series={series}
               totalPayments={loanPayments.length}
+              payments={loanPayments}
+              referenceRates={referenceRates}
             />
 
             <Grid container spacing={3}>

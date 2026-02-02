@@ -2,7 +2,7 @@ import { memo, useCallback, useEffect, useState } from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { db } from '../db';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
+import { AmountInput, Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { useNumberInput, useDateInput } from '../hooks';
@@ -70,20 +70,14 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
                       <Alert severity="error">{amount.error}</Alert>
                     )}
                     <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
-                        <Box>
-                            <Typography variant="caption" component="label" display="block" gutterBottom>
-                                Amount
-                            </Typography>
-                            <Input
-                                type="text"
-                                placeholder="0.00"
-                                value={amount.value}
-                                onChange={(e) => amount.setValue(e.target.value)}
-                                required
-                                size="small"
-                                error={!amount.isValid && !!amount.value}
-                            />
-                        </Box>
+                        <AmountInput
+                            label="Amount"
+                            value={amount.value}
+                            onChange={amount.setValue}
+                            required
+                            size="small"
+                            error={!amount.isValid && !!amount.value}
+                        />
                         <Box>
                             <Typography variant="caption" component="label" display="block" gutterBottom>
                                 Date

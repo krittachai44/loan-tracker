@@ -1,16 +1,19 @@
 import { memo, useMemo } from 'react';
 import { Grid, useTheme } from '@mui/material';
 import { SummaryCard } from './SummaryCard';
-import type { Loan } from '../types';
+import type { Loan, Payment, ReferenceRate } from '../types';
 import type { PaymentLog } from '../utils';
+import { calculatePayoffPrediction } from '../utils';
 
 interface LoanSummaryProps {
     loan: Loan;
     series: PaymentLog[];
     totalPayments: number;
+    payments: Payment[];
+    referenceRates: ReferenceRate[];
 }
 
-export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments }) => {
+export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments, payments, referenceRates }) => {
     const theme = useTheme();
 
     // Derive state during render instead of in effects
@@ -36,9 +39,14 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
         [series]
     );
 
+    const payoffPrediction = useMemo(() => 
+        calculatePayoffPrediction(loan, payments, currentStatus.remainingPrincipal, referenceRates),
+        [loan, payments, currentStatus.remainingPrincipal, referenceRates]
+    );
+
     return (
         <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={3}>
                 <SummaryCard
                     title="Remaining Principal"
                     value={currentStatus.remainingPrincipal}
@@ -48,7 +56,7 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                 />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={3}>
                 <SummaryCard
                     title="Interest Paid"
                     value={totalInterest}
@@ -58,7 +66,7 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                 />
             </Grid>
 
-            <Grid item xs={12} sm={6} md={4}>
+            <Grid item xs={12} sm={6} md={3}>
                 <SummaryCard
                     title="Total Paid"
                     value={totalPaid}
@@ -67,6 +75,20 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                     icon="down"
                 />
             </Grid>
+
+            {payoffPrediction && (
+                <Grid item xs={12} sm={6} md={3}>
+                    <SummaryCard
+                        title="Est. Payoff Time"
+                        value={payoffPrediction.estimatedYearsLeft}
+                        valuePrefix=""
+                        valueSuffix={` year${payoffPrediction.estimatedYearsLeft === 1 ? '' : 's'}`}
+                        subtitle={`~${payoffPrediction.estimatedMonthsLeft} months | ${payoffPrediction.confidence} confidence | calculated based on last 12 current payment trends`}
+                        valueColor="info.main"
+                        icon="time"
+                    />
+                </Grid>
+            )}
         </Grid>
     );
 });

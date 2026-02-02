@@ -68,12 +68,23 @@ export class ErrorBoundary extends Component<Props, State> {
                 sx={{
                   p: 2,
                   mb: 3,
-                  backgroundColor: 'grey.100',
+                  backgroundColor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
                   textAlign: 'left',
                   overflow: 'auto',
                 }}
               >
-                <Typography variant="caption" component="pre" sx={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+                <Typography 
+                  variant="caption" 
+                  component="pre" 
+                  sx={{ 
+                    whiteSpace: 'pre-wrap', 
+                    wordBreak: 'break-word',
+                    color: 'text.primary',
+                    fontFamily: 'monospace'
+                  }}
+                >
                   {this.state.error.message}
                 </Typography>
               </Paper>

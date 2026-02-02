@@ -2,36 +2,60 @@ import * as React from 'react';
 import { Select, MenuItem, FormControl, InputLabel, Box, Typography } from '@mui/material';
 import { db } from '../db';
 import { Button } from './ui/Button';
-import { Input } from './ui/Input';
+import { Input, AmountInput } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { formatNumberInput, parseFormattedNumber } from '../utils';
+import { useNumberInput } from '../hooks';
 
 interface LoanSetupProps {
     onComplete: () => void;
 }
 
 interface RateSegmentState {
-    value: string;
+    value: number;
     isoStartDate: string;
     type: 'fixed' | 'float';
 }
 
+// Helper component for rate input with controlled state
+const RateInput: React.FC<{
+    value: number;
+    type: 'fixed' | 'float';
+    onChange: (value: number) => void;
+}> = ({ value, type, onChange }) => {
+    const rateInput = useNumberInput({ 
+        initialValue: value,
+        allowNegative: true // Allow negative for float spreads
+    });
+
+    React.useEffect(() => {
+        onChange(rateInput.numericValue);
+    }, [rateInput.numericValue, onChange]);
+
+    return (
+        <AmountInput
+            value={rateInput.value}
+            onChange={rateInput.setValue}
+            label={type === 'fixed' ? 'Rate (%)' : 'Spread (+/- %)'}
+        />
+    );
+};
+
 export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
     const isoNow = new Date().toISOString().split('T')[0];
     const [name, setName] = React.useState('My Loan');
-    const [principal, setPrincipal] = React.useState('');
+    const principal = useNumberInput({ min: 0 });
     const [isoStartDate, setIsoStartDate] = React.useState(isoNow);
 
     // Initialize with one rate segment
     const [rates, setRates] = React.useState<RateSegmentState[]>([{
-        value: '',
+        value: 0,
         isoStartDate: isoNow,
         type: 'fixed'
     }]);
 
     const addRate = () => {
-        setRates([...rates, { value: '', isoStartDate: '', type: 'fixed' as const }]);
+        setRates([...rates, { value: 0, isoStartDate: '', type: 'fixed' as const }]);
     };
 
     const removeRate = (index: number) => {
@@ -39,7 +63,7 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
         setRates(rates.filter((_, i) => i !== index));
     };
 
-    const updateRate = (index: number, field: keyof RateSegmentState, val: string) => {
+    const updateRate = (index: number, field: keyof RateSegmentState, val: string | number) => {
         const newRates = [...rates];
         newRates[index] = { ...newRates[index], [field]: val };
         setRates(newRates);
@@ -47,17 +71,17 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        if (!principal || rates.some(r => !r.value || !r.isoStartDate)) return;
+        if (!principal.numericValue || rates.some(r => !r.value || !r.isoStartDate)) return;
 
         const parsedRates = rates.map(r => ({
-            value: parseFloat(parseFormattedNumber(r.value)),
+            value: r.value,
             startDate: new Date(r.isoStartDate),
             type: r.type
         }));
 
         await db.loans.add({
             name,
-            principal: parseFloat(parseFormattedNumber(principal)),
+            principal: principal.numericValue,
             rates: parsedRates,
             startDate: new Date(isoStartDate)
         });
@@ -86,36 +110,10 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
                             />
                         </Box>
                         <Box>
-                            <Typography variant="caption" component="label" display="block" gutterBottom>
-                                Principal Amount
-                            </Typography>
-                            <Input
-                                type="text"
-                                value={principal}
-                                onChange={(e) => setPrincipal(formatNumberInput(e.target.value))}
-                                onKeyDown={(e) => {
-                                    // Allow: backspace, delete, tab, escape, enter, decimal point
-                                    if (["Backspace", "Delete", "Tab", "Escape", "Enter", "."].includes(e.key) ||
-                                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                                        (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) ||
-                                        // Allow: arrow keys
-                                        ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-                                        return;
-                                    }
-                                    // Prevent if not a number
-                                    if (!/^[0-9]$/.test(e.key)) {
-                                        e.preventDefault();
-                                    }
-                                }}
-                                onPaste={(e) => {
-                                    e.preventDefault();
-                                    const pastedText = e.clipboardData.getData('text');
-                                    const numericOnly = pastedText.replace(/[^0-9.]/g, '');
-                                    setPrincipal(formatNumberInput(principal.slice(0, (e.target as HTMLInputElement).selectionStart || 0) + numericOnly + principal.slice((e.target as HTMLInputElement).selectionEnd || 0)));
-                                }}
-                                placeholder="0.00"
-                                required
-                                size="small"
+                            <AmountInput
+                                value={principal.value}
+                                onChange={principal.setValue}
+                                label="Principal Amount"
                             />
                         </Box>
                         <Box>
@@ -148,35 +146,10 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
                                             </Select>
                                         </FormControl>
                                         <Box sx={{ flex: 1 }}>
-                                            <Input
-                                                type="text"
+                                            <RateInput
                                                 value={r.value}
-                                                onChange={(e) => updateRate(index, 'value', formatNumberInput(e.target.value))}
-                                                onKeyDown={(e) => {
-                                                    // Allow: backspace, delete, tab, escape, enter, decimal point, minus sign
-                                                    if (["Backspace", "Delete", "Tab", "Escape", "Enter", ".", "-"].includes(e.key) ||
-                                                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                                                        (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) ||
-                                                        // Allow: arrow keys
-                                                        ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-                                                        return;
-                                                    }
-                                                    // Prevent if not a number
-                                                    if (!/^[0-9]$/.test(e.key)) {
-                                                        e.preventDefault();
-                                                    }
-                                                }}
-                                                onPaste={(e) => {
-                                                    e.preventDefault();
-                                                    const pastedText = e.clipboardData.getData('text');
-                                                    const numericOnly = pastedText.replace(/[^0-9.-]/g, '');
-                                                    const currentValue = r.value;
-                                                    updateRate(index, 'value', formatNumberInput(currentValue.slice(0, (e.target as HTMLInputElement).selectionStart || 0) + numericOnly + currentValue.slice((e.target as HTMLInputElement).selectionEnd || 0)));
-                                                }}
-                                                placeholder={r.type === 'fixed' ? "5.5" : "-1.5"}
-                                                label={r.type === 'fixed' ? 'Rate (%)' : 'Spread (+/- %)'}
-                                                required
-                                                size="small"
+                                                type={r.type}
+                                                onChange={(val) => updateRate(index, 'value', val)}
                                             />
                                         </Box>
                                     </Box>
