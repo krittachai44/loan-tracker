@@ -3,14 +3,26 @@ import { createRoot } from 'react-dom/client'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import './index.css'
-import { modernTheme } from './modernTheme'
+import { modernTheme, darkTheme } from './modernTheme'
+import { ThemeContextProvider, useThemeMode } from './ThemeContext'
 import App from './App.tsx'
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <ThemeProvider theme={modernTheme}>
+const ThemedApp = () => {
+  const { mode } = useThemeMode();
+  const theme = mode === 'dark' ? darkTheme : modernTheme;
+
+  return (
+    <ThemeProvider theme={theme}>
       <CssBaseline />
       <App />
     </ThemeProvider>
+  );
+};
+
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <ThemeContextProvider>
+      <ThemedApp />
+    </ThemeContextProvider>
   </StrictMode>,
 )
