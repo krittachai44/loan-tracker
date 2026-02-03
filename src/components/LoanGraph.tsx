@@ -11,7 +11,7 @@ import {
   Legend
 } from 'recharts';
 import { format, subMonths } from 'date-fns';
-import TrendingDown from '@mui/icons-material/TrendingDown';
+import TrendingDownOutlined from '@mui/icons-material/TrendingDownOutlined';
 import type { PaymentLog } from '../utils';
 
 interface LoanGraphProps {
@@ -94,7 +94,7 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
               boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
             }}
           >
-            <TrendingDown sx={{ fontSize: 20 }} />
+            <TrendingDownOutlined sx={{ fontSize: 20 }} />
           </Box>
           <Box>
             <Typography variant="h6" sx={{ fontWeight: 700, fontSize: '1.125rem', lineHeight: 1.3 }}>

@@ -3,8 +3,8 @@ import {
   IconButton,
   Tooltip
 } from '@mui/material';
-import FileDownload from '@mui/icons-material/FileDownload';
-import FileUpload from '@mui/icons-material/FileUpload';
+import FileDownloadOutlined from '@mui/icons-material/FileDownloadOutlined';
+import FileUploadOutlined from '@mui/icons-material/FileUploadOutlined';
 import * as XLSX from 'xlsx';
 import { db } from '../db';
 import { type Loan, type Payment, type ReferenceRate } from '../types';
@@ -299,7 +299,7 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
             }
           }}
         >
-          <FileDownload fontSize="small" />
+          <FileDownloadOutlined fontSize="small" />
         </IconButton>
       </Tooltip>
 
@@ -316,7 +316,7 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
             }
           }}
         >
-          <FileUpload fontSize="small" />
+          <FileUploadOutlined fontSize="small" />
         </IconButton>
       </Tooltip>
     </>

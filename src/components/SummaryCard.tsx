@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { Typography, Box, Paper } from '@mui/material';
-import TrendingUp from '@mui/icons-material/TrendingUp';
-import TrendingDown from '@mui/icons-material/TrendingDown';
-import AttachMoney from '@mui/icons-material/AttachMoney';
-import Schedule from '@mui/icons-material/Schedule';
+import TrendingUpOutlined from '@mui/icons-material/TrendingUpOutlined';
+import TrendingDownOutlined from '@mui/icons-material/TrendingDownOutlined';
+import AttachMoneyOutlined from '@mui/icons-material/AttachMoneyOutlined';
+import ScheduleOutlined from '@mui/icons-material/ScheduleOutlined';
 
 interface SummaryCardProps {
   title: string;
@@ -33,10 +33,10 @@ export const SummaryCard: React.FC<SummaryCardProps> = ({
     const iconProps = { sx: { fontSize: 24, opacity: 0.9 } };
 
     switch (icon) {
-      case 'up': return <TrendingUp {...iconProps} />;
-      case 'down': return <TrendingDown {...iconProps} />;
-      case 'money': return <AttachMoney {...iconProps} />;
-      case 'time': return <Schedule {...iconProps} />;
+      case 'up': return <TrendingUpOutlined {...iconProps} />;
+      case 'down': return <TrendingDownOutlined {...iconProps} />;
+      case 'money': return <AttachMoneyOutlined {...iconProps} />;
+      case 'time': return <ScheduleOutlined {...iconProps} />;
       default: return null;
     }
   };

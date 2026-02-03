@@ -11,11 +11,11 @@ import {
   DialogActions,
   Button
 } from '@mui/material';
-import Refresh from '@mui/icons-material/Refresh';
-import AccountBalance from '@mui/icons-material/AccountBalance';
-import Warning from '@mui/icons-material/Warning';
-import Brightness4 from '@mui/icons-material/Brightness4';
-import Brightness7 from '@mui/icons-material/Brightness7';
+import RefreshOutlined from '@mui/icons-material/RefreshOutlined';
+import AccountBalanceOutlined from '@mui/icons-material/AccountBalanceOutlined';
+import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
+import Brightness4Outlined from '@mui/icons-material/Brightness4Outlined';
+import Brightness7Outlined from '@mui/icons-material/Brightness7Outlined';
 import { resetDatabase } from '../db';
 import { DataExportImport } from './DataExportImport';
 import { useThemeMode } from '../ThemeContext';
@@ -74,7 +74,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
               boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
             }}
           >
-            <AccountBalance sx={{ fontSize: 22 }} />
+            <AccountBalanceOutlined sx={{ fontSize: 22 }} />
           </Box>
 
           {/* Title */}
@@ -121,7 +121,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
             }}
             aria-label="toggle theme"
           >
-            {mode === 'dark' ? <Brightness7 fontSize="small" /> : <Brightness4 fontSize="small" />}
+            {mode === 'dark' ? <Brightness7Outlined fontSize="small" /> : <Brightness4Outlined fontSize="small" />}
           </IconButton>
 
           {!hideActions && (
@@ -135,7 +135,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
                 }
               }}
             >
-              <Refresh fontSize="small" />
+              <RefreshOutlined fontSize="small" />
             </IconButton>
           )}
 
@@ -176,7 +176,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
               color: 'error.main'
             }}
           >
-            <Warning />
+            <WarningAmberOutlined />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>
             Reset All Data?

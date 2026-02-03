@@ -145,14 +145,12 @@ export const SetupLayout: React.FC = () => {
       />
 
       {/* Main Content */}
-      <Box sx={{ display: 'flex', gap: 6, p: 6 }}>
-        {/* Left Side - Setup Form */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+      <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '650px 1fr' }, gap: 3 }}>
+          {/* Left Side - Setup Form */}
           <LoanSetup onComplete={() => { }} />
-        </Box>
 
-        {/* Right Side - MRR Manager */}
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 400 }}>
+          {/* Right Side - MRR Manager */}
           <MRRManager />
         </Box>
       </Box>
