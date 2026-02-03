@@ -1,4 +1,3 @@
-import { memo } from 'react';
 import { Box, Container, Grid2, Stack, Fade, CircularProgress } from '@mui/material';
 import { SetupLayout } from './components/SetupLayout';
 import { AppHeader } from './components/AppHeader';
@@ -9,8 +8,8 @@ import { DashboardSidebar } from './components/DashboardSidebar';
 import { useLoanData } from './hooks';
 import { LOADING_MESSAGES } from './constants';
 
-// Memoized loading component to prevent re-creation
-const LoadingState = memo(() => (
+// Loading component
+const LoadingState = () => (
   <Box sx={{ 
     display: 'flex', 
     flexDirection: 'column',
@@ -26,8 +25,7 @@ const LoadingState = memo(() => (
       {LOADING_MESSAGES.LOAN_DATA}
     </Box>
   </Box>
-));
-LoadingState.displayName = 'LoadingState';
+);
 
 function App() {
   const { activeLoan, loanPayments, series, referenceRates, isLoading } = useLoanData();

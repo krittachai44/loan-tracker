@@ -24,7 +24,7 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
   const [period, setPeriod] = React.useState<TimePeriod>('all');
 
   // Filter data based on selected period
-  const filteredData = React.useMemo(() => {
+  const filteredData = (() => {
     if (period === 'all' || data.length === 0) return data;
 
     const now = new Date();
@@ -48,16 +48,16 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
     }
 
     return data.filter(item => item.date >= cutoffDate);
-  }, [data, period]);
+  })();
 
   // Format data for chart
-  const chartData = React.useMemo(() => filteredData.map(item => ({
+  const chartData = filteredData.map(item => ({
     ...item,
     formattedDate: format(item.date, 'dd/MM'),
     fullDate: format(item.date, 'dd/MM/yyyy'),
     balance: parseFloat(item.remainingPrincipal.toFixed(2)),
     interestPaid: parseFloat(item.interest.toFixed(2)),
-  })), [filteredData]);
+  }));
 
   const handlePeriodChange = (_: React.MouseEvent<HTMLElement>, newPeriod: TimePeriod | null) => {
     if (newPeriod) setPeriod(newPeriod);

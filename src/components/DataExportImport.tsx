@@ -74,7 +74,7 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch (error) {
+    } catch {
       alert('Failed to export data. Please try again.');
     }
   };

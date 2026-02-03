@@ -17,18 +17,18 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
   const [editingPayment, setEditingPayment] = React.useState<Payment | null>(null);
   const [selectedYear, setSelectedYear] = React.useState<number | 'ALL'>('ALL');
 
-  const availableYears = React.useMemo(() => {
+  const availableYears = (() => {
     const years = new Set(logs.map(log => log.date.getFullYear()));
     return Array.from(years).sort((a, b) => b - a);
-  }, [logs]);
+  })();
 
-  const history = React.useMemo(() => {
+  const history = (() => {
     let sorted = [...logs].reverse();
     if (selectedYear !== 'ALL') {
       sorted = sorted.filter(log => log.date.getFullYear() === selectedYear);
     }
     return sorted;
-  }, [logs, selectedYear]);
+  })();
 
   const handleEdit = async (paymentId: number) => {
     const payment = await db.payments.get(paymentId);

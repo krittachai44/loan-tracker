@@ -35,5 +35,3 @@ export const AmountInput = React.forwardRef<HTMLInputElement, AmountInputProps>(
     );
   }
 );
-
-AmountInput.displayName = 'AmountInput';
