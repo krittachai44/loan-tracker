@@ -12,14 +12,14 @@ interface LoanSetupProps {
 }
 
 interface RateSegmentState {
-    value: number;
+    value: number | '';
     isoStartDate: string;
     type: 'fixed' | 'float';
 }
 
 // Helper component for rate input with controlled state
 const RateInput: React.FC<{
-    value: number;
+    value: number | '';
     type: 'fixed' | 'float';
     onChange: (value: number) => void;
 }> = ({ value, type, onChange }) => {
@@ -56,13 +56,13 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
 
     // Initialize with one rate segment
     const [rates, setRates] = React.useState<RateSegmentState[]>([{
-        value: 0,
+        value: '',
         isoStartDate: isoNow,
         type: 'fixed'
     }]);
 
     const addRate = () => {
-        setRates([...rates, { value: 0, isoStartDate: '', type: 'fixed' as const }]);
+        setRates([...rates, { value: '', isoStartDate: '', type: 'fixed' as const }]);
     };
 
     const removeRate = (index: number) => {
@@ -80,11 +80,13 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
         e.preventDefault();
         if (!principal.numericValue || rates.some(r => !r.value || !r.isoStartDate)) return;
 
-        const parsedRates = rates.map(r => ({
-            value: r.value,
-            startDate: new Date(r.isoStartDate),
-            type: r.type
-        }));
+        const parsedRates = rates
+            .filter((r): r is RateSegmentState & { value: number } => typeof r.value === 'number')
+            .map(r => ({
+                value: r.value,
+                startDate: new Date(r.isoStartDate),
+                type: r.type
+            }));
 
         await db.loans.add({
             name,
