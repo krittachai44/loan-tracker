@@ -34,7 +34,7 @@ export const PaymentForm = ({ loanId, initialPayment, onComplete }: PaymentFormP
       date.reset();
       setNote('');
     }
-  }, [initialPayment, amount, date]);
+  }, [initialPayment?.id]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
