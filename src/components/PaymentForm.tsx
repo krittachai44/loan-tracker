@@ -1,4 +1,4 @@
-import { memo, useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Box, Typography, Alert } from '@mui/material';
 import { db } from '../db';
 import { Button } from './ui/Button';
@@ -15,7 +15,7 @@ interface PaymentFormProps {
   onComplete?: () => void;
 }
 
-export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onComplete }) => {
+export const PaymentForm = ({ loanId, initialPayment, onComplete }: PaymentFormProps) => {
   const amount = useNumberInput({
     min: VALIDATION.MIN_PAYMENT,
     initialValue: initialPayment?.amount || ''
@@ -34,9 +34,9 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
       date.reset();
       setNote('');
     }
-  }, [initialPayment?.id, initialPayment?.amount, initialPayment?.date, initialPayment?.note, amount.setNumericValue, date.setDateValue, amount.reset, date.reset]);
+  }, [initialPayment, amount, date]);
 
-  const handleSubmit = useCallback(async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!amount.isValid || !amount.numericValue || !date.isoDate) return;
@@ -57,7 +57,7 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
     }
 
     onComplete?.();
-  }, [loanId, amount, date, note, initialPayment, onComplete]);
+  };
 
   return (
     <Card>
@@ -108,7 +108,5 @@ export const PaymentForm = memo<PaymentFormProps>(({ loanId, initialPayment, onC
       </CardContent>
     </Card>
   );
-});
-
-PaymentForm.displayName = 'PaymentForm';
+};
 

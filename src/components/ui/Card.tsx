@@ -90,8 +90,5 @@ const CardTitle = ({ children }: CardTitleProps) => (
   </MuiTypography>
 );
 
-Card.displayName = 'Card';
-CardContent.displayName = 'CardContent';
-CardHeader.displayName = 'CardHeader';
 
 export { Card, CardContent, CardHeader, CardTitle };

@@ -1,4 +1,3 @@
-import { memo, useMemo } from 'react';
 import { Grid2, useTheme } from '@mui/material';
 import { SummaryCard } from './SummaryCard';
 import type { Loan, Payment, ReferenceRate } from '../types';
@@ -13,13 +12,13 @@ interface LoanSummaryProps {
   referenceRates: ReferenceRate[];
 }
 
-export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments, payments, referenceRates }) => {
+export const LoanSummary = ({ loan, series, totalPayments, payments, referenceRates }: LoanSummaryProps) => {
   const theme = useTheme();
 
   // Derive state during render instead of in effects
   const currentStatus = series[series.length - 1];
 
-  const getRateDisplay = useMemo(() => {
+  const getRateDisplay = (() => {
     if (!loan.rates || loan.rates.length === 0) return 'N/A';
     const firstRate = loan.rates[0];
     const baseText = firstRate.type === 'fixed'
@@ -27,22 +26,13 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
       : `MRR ${firstRate.value >= 0 ? '+' : ''}${firstRate.value}%`;
 
     return loan.rates.length > 1 ? `${baseText} (Variable)` : `${baseText}`;
-  }, [loan.rates]);
+  })();
 
-  const totalInterest = useMemo(() =>
-    series.reduce((sum, item) => sum + item.interest, 0),
-    [series]
-  );
+  const totalInterest = series.reduce((sum, item) => sum + item.interest, 0);
 
-  const totalPaid = useMemo(() =>
-    series.reduce((sum, item) => sum + item.amount, 0),
-    [series]
-  );
+  const totalPaid = series.reduce((sum, item) => sum + item.amount, 0);
 
-  const payoffPrediction = useMemo(() =>
-    calculatePayoffPrediction(loan, payments, currentStatus.remainingPrincipal, referenceRates),
-    [loan, payments, currentStatus.remainingPrincipal, referenceRates]
-  );
+  const payoffPrediction = calculatePayoffPrediction(loan, payments, currentStatus.remainingPrincipal, referenceRates);
 
   return (
     <Grid2 container spacing={3}>
@@ -91,6 +81,4 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
       )}
     </Grid2>
   );
-});
-
-LoanSummary.displayName = 'LoanSummary';
+};

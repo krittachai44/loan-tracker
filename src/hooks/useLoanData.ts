@@ -1,5 +1,4 @@
 import { useLiveQuery } from 'dexie-react-hooks';
-import { useMemo } from 'react';
 import { db } from '../db';
 import { calculateLoanSeries } from '../utils';
 
@@ -11,20 +10,20 @@ export const useLoanData = (loanId?: number) => {
   const payments = useLiveQuery(() => db.payments.toArray());
   const referenceRates = useLiveQuery(() => db.referenceRates.toArray());
 
-  const activeLoan = useMemo(() => {
+  const activeLoan = (() => {
     if (!loans || loans.length === 0) return null;
     return loanId ? loans.find((l) => l.id === loanId) : loans[0];
-  }, [loans, loanId]);
+  })();
 
-  const loanPayments = useMemo(() => {
+  const loanPayments = (() => {
     if (!activeLoan?.id || !payments) return [];
     return payments.filter((p) => p.loanId === activeLoan.id);
-  }, [activeLoan?.id, payments]);
+  })();
 
-  const series = useMemo(() => {
+  const series = (() => {
     if (!activeLoan) return [];
     return calculateLoanSeries(activeLoan, loanPayments, referenceRates || []);
-  }, [activeLoan, loanPayments, referenceRates]);
+  })();
 
   const isLoading = !loans;
   return {

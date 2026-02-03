@@ -1,4 +1,4 @@
-import { Component, type ReactNode, type ErrorInfo } from 'react';
+import { Component, type ReactNode } from 'react';
 import { Box, Button, Typography, Paper } from '@mui/material';
 
 interface Props {
@@ -24,7 +24,7 @@ export class ErrorBoundary extends Component<Props, State> {
     return { hasError: true, error };
   }
 
-  componentDidCatch(_error: Error, _errorInfo: ErrorInfo) {
+  componentDidCatch() {
     // Error is captured in state and displayed to user
   }
 

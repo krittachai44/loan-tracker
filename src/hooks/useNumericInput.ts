@@ -67,7 +67,7 @@ export function useNumericInput(options: UseNumericInputOptions = {}): UseNumeri
     pattern
   } = options;
 
-  const handleKeyDown = React.useCallback((e: React.KeyboardEvent<HTMLElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
     // Build allowed special characters
     const specialChars = ['Backspace', 'Delete', 'Tab', 'Escape', 'Enter'];
     if (allowDecimal) specialChars.push('.');
@@ -92,9 +92,9 @@ export function useNumericInput(options: UseNumericInputOptions = {}): UseNumeri
     if (!/^[0-9]$/.test(e.key)) {
       e.preventDefault();
     }
-  }, [allowDecimal, allowNegative]);
+  };
 
-  const handlePaste = React.useCallback((
+  const handlePaste = (
     e: React.ClipboardEvent<HTMLElement>,
     currentValue: string,
     setValue: (value: string) => void
@@ -127,7 +127,7 @@ export function useNumericInput(options: UseNumericInputOptions = {}): UseNumeri
       currentValue.slice(selectionEnd);
     
     setValue(newValue);
-  }, [allowDecimal, allowNegative, pattern]);
+  };
 
   return {
     handleKeyDown,

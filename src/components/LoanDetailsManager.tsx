@@ -28,7 +28,7 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
       principal.setNumericValue(loan.principal);
       setIsoStartDate(loan.startDate.toISOString().split('T')[0]);
     }
-  }, [loan, isEditing, principal.setNumericValue]);
+  }, [loan, isEditing, principal]);
 
   const handleSave = async () => {
     if (!name || !principal.isValid || !isoStartDate) {

@@ -56,13 +56,13 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
 
     // Initialize with one rate segment
     const [rates, setRates] = React.useState<RateSegmentState[]>([{
-        value: '' as any,
+        value: 0,
         isoStartDate: isoNow,
         type: 'fixed'
     }]);
 
     const addRate = () => {
-        setRates([...rates, { value: '' as any, isoStartDate: '', type: 'fixed' as const }]);
+        setRates([...rates, { value: 0, isoStartDate: '', type: 'fixed' as const }]);
     };
 
     const removeRate = (index: number) => {
