@@ -1,5 +1,5 @@
 import { memo } from 'react';
-import { Box, Container, Grid, Stack, Fade, CircularProgress } from '@mui/material';
+import { Box, Container, Grid2, Stack, Fade, CircularProgress } from '@mui/material';
 import { SetupLayout } from './components/SetupLayout';
 import { AppHeader } from './components/AppHeader';
 import { LoanSummary } from './components/LoanSummary';
@@ -17,9 +17,11 @@ const LoadingState = memo(() => (
     alignItems: 'center', 
     justifyContent: 'center', 
     height: '100vh',
+    width: '100vw',
+    bgcolor: 'background.default',
     gap: 2
   }}>
-    <CircularProgress size={48} thickness={4} />
+    <CircularProgress size={48} thickness={4} color="primary" />
     <Box sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>
       {LOADING_MESSAGES.LOAN_DATA}
     </Box>
@@ -61,20 +63,20 @@ function App() {
               referenceRates={referenceRates}
             />
 
-            <Grid container spacing={3}>
+            <Grid2 container spacing={3}>
               {/* Main Content Area (Left) - 2/3 width */}
-              <Grid item xs={12} lg={8}>
+              <Grid2 size={{ xs: 12, lg: 8 }}>
                 <Stack spacing={3}>
                   <LoanGraph data={series} />
                   <PaymentList logs={paymentLogs} />
                 </Stack>
-              </Grid>
+              </Grid2>
 
               {/* Sidebar Area (Right) - 1/3 width */}
-              <Grid item xs={12} lg={4}>
+              <Grid2 size={{ xs: 12, lg: 4 }}>
                 <DashboardSidebar loan={activeLoan} />
-              </Grid>
-            </Grid>
+              </Grid2>
+            </Grid2>
           </Stack>
         </Container>
       </Box>

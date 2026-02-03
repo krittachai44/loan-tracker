@@ -1,5 +1,5 @@
 import { memo, useMemo } from 'react';
-import { Grid, useTheme } from '@mui/material';
+import { Grid2, useTheme } from '@mui/material';
 import { SummaryCard } from './SummaryCard';
 import type { Loan, Payment, ReferenceRate } from '../types';
 import type { PaymentLog } from '../utils';
@@ -45,8 +45,8 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
     );
 
     return (
-        <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
+        <Grid2 container spacing={3}>
+            <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                 <SummaryCard
                     title="Remaining Principal"
                     value={currentStatus.remainingPrincipal}
@@ -54,9 +54,9 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                     gradient={`linear-gradient(135deg, ${theme.palette.primary.main} 0%, ${theme.palette.primary.dark} 100%)`}
                     icon="money"
                 />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                 <SummaryCard
                     title="Interest Paid"
                     value={totalInterest}
@@ -64,9 +64,9 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                     valueColor="error.main"
                     icon="up"
                 />
-            </Grid>
+            </Grid2>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                 <SummaryCard
                     title="Total Paid"
                     value={totalPaid}
@@ -74,10 +74,10 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                     valueColor="success.main"
                     icon="down"
                 />
-            </Grid>
+            </Grid2>
 
             {payoffPrediction && (
-                <Grid item xs={12} sm={6} md={3}>
+                <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
                     <SummaryCard
                         title="Est. Payoff Time"
                         value={payoffPrediction.estimatedYearsLeft}
@@ -87,9 +87,9 @@ export const LoanSummary = memo<LoanSummaryProps>(({ loan, series, totalPayments
                         valueColor="info.main"
                         icon="time"
                     />
-                </Grid>
+                </Grid2>
             )}
-        </Grid>
+        </Grid2>
     );
 });
 

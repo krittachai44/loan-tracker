@@ -27,7 +27,6 @@ export const useLoanData = (loanId?: number) => {
   }, [activeLoan, loanPayments, referenceRates]);
 
   const isLoading = !loans;
-
   return {
     loans,
     activeLoan,

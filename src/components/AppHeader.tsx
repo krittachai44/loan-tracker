@@ -145,10 +145,12 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
                 onClose={handleResetCancel}
                 maxWidth="xs"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: 3,
-                        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: 3,
+                            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                        }
                     }
                 }}
             >

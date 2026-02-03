@@ -46,13 +46,13 @@ export const SetupLayout: React.FC = () => {
             if (result.success) {
                 setSnackbar({
                     open: true,
-                    message: 'Data imported successfully! Redirecting...',
+                    message: 'Data imported successfully!',
                     severity: 'success'
                 });
                 
-                // Ensure database transaction is fully committed before reload
-                await new Promise(resolve => setTimeout(resolve, 500));
-                window.location.reload();
+                // No need for window.location.reload()
+                // Dexie's useLiveQuery will automatically detect the changes
+                // and re-render the components with the new data
             } else {
                 setSnackbar({
                     open: true,
@@ -161,10 +161,12 @@ export const SetupLayout: React.FC = () => {
                 onClose={() => setSampleDialogOpen(false)}
                 maxWidth="md"
                 fullWidth
-                PaperProps={{
-                    sx: {
-                        borderRadius: 3,
-                        boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                slotProps={{
+                    paper: {
+                        sx: {
+                            borderRadius: 3,
+                            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+                        }
                     }
                 }}
             >
