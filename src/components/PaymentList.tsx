@@ -1,10 +1,11 @@
 import * as React from 'react';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow } from '@mui/material';
+import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
 import type { PaymentLog } from '../utils';
 import type { Payment } from '../types';
 import { db } from '../db';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Modal } from './ui/Modal';
+import { Button } from './ui/Button';
 import { PaymentForm } from './PaymentForm';
 import { YearFilter } from './YearFilter';
 import { PaymentTableRow } from './PaymentTableRow';
@@ -15,6 +16,7 @@ interface PaymentListProps {
 
 export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
   const [editingPayment, setEditingPayment] = React.useState<Payment | null>(null);
+  const [deletingPaymentId, setDeletingPaymentId] = React.useState<number | null>(null);
   const [selectedYear, setSelectedYear] = React.useState<number | 'ALL'>('ALL');
 
   const availableYears = (() => {
@@ -37,11 +39,30 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
     }
   };
 
-  const handleDelete = async (paymentId: number) => {
-    if (confirm('Are you sure you want to delete this payment?')) {
-      await db.payments.delete(paymentId);
+  const handleDelete = (paymentId: number) => {
+    setDeletingPaymentId(paymentId);
+  };
+
+  const confirmDelete = async () => {
+    if (deletingPaymentId) {
+      await db.payments.delete(deletingPaymentId);
+      setDeletingPaymentId(null);
     }
   };
+
+  // Handle keyboard shortcuts for delete confirmation modal
+  React.useEffect(() => {
+    if (!deletingPaymentId) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Enter') {
+        confirmDelete();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [deletingPaymentId, confirmDelete]);
 
   return (
     <>
@@ -152,6 +173,26 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
             onComplete={() => setEditingPayment(null)}
           />
         )}
+      </Modal>
+
+      <Modal
+        isOpen={!!deletingPaymentId}
+        onClose={() => setDeletingPaymentId(null)}
+        title="Delete Payment"
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography>
+            Are you sure you want to delete this payment? This action cannot be undone.
+          </Typography>
+          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+            <Button variant="outline" onClick={() => setDeletingPaymentId(null)}>
+              Cancel
+            </Button>
+            <Button variant="contained" color="error" onClick={confirmDelete}>
+              Delete
+            </Button>
+          </Box>
+        </Box>
       </Modal>
     </>
   );

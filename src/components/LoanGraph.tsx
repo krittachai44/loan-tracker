@@ -50,9 +50,10 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
     return data.filter(item => item.date >= cutoffDate);
   })();
 
-  // Format data for chart
-  const chartData = filteredData.map(item => ({
+  // Format data for chart - add index for unique identification
+  const chartData = filteredData.map((item, index) => ({
     ...item,
+    index,
     formattedDate: format(item.date, 'dd/MM'),
     fullDate: format(item.date, 'dd/MM/yyyy'),
     balance: parseFloat(item.remainingPrincipal.toFixed(2)),
@@ -145,8 +146,8 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
             data={chartData}
             margin={{
               top: 10,
-              right: 10,
-              left: 10,
+              right: 20,
+              left: 20,
               bottom: 0,
             }}
           >
@@ -162,11 +163,15 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
               stroke="rgba(148, 163, 184, 0.2)"
             />
             <XAxis
-              dataKey="formattedDate"
+              dataKey="index"
               tick={{ fontSize: 12, fill: '#64748b' }}
               tickLine={false}
               axisLine={{ stroke: 'rgba(148, 163, 184, 0.2)' }}
               dy={8}
+              tickFormatter={(value) => {
+                const item = chartData[value];
+                return item ? item.formattedDate : '';
+              }}
             />
             <YAxis
               tick={{ fontSize: 12, fill: '#64748b' }}
@@ -183,8 +188,23 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
                 backgroundColor: 'rgba(255, 255, 255, 0.95)',
                 backdropFilter: 'blur(8px)'
               }}
-              labelFormatter={(label) => String(label)}
-              formatter={(value: number | undefined) => value ? [value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 }), ''] : ['', '']}
+              labelFormatter={(label, payload) => {
+                if (payload && payload.length > 0) {
+                  return payload[0].payload.fullDate;
+                }
+                return String(label);
+              }}
+              formatter={(value: number | undefined) => 
+                value !== undefined 
+                  ? [
+                      value.toLocaleString(undefined, { 
+                        minimumFractionDigits: 2, 
+                        maximumFractionDigits: 2 
+                      }),
+                      'Remaining Principal'
+                    ]
+                  : ['', '']
+              }
             />
             <Legend
               wrapperStyle={{
