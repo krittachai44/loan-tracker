@@ -23,14 +23,14 @@ interface UseNumberInputReturn {
  */
 export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberInputReturn => {
   const { min, max, initialValue = '', allowNegative = false } = options;
-  const [value, setValue] = useState(() => 
+  const [value, setValue] = useState(() =>
     typeof initialValue === 'number' ? initialValue.toString() : initialValue
   );
 
   const numericValue = parseFloat(value) || 0;
 
-  const isValid = 
-    (!min || numericValue >= min) && 
+  const isValid =
+    (!min || numericValue >= min) &&
     (!max || numericValue <= max) &&
     !isNaN(numericValue);
 
@@ -47,7 +47,7 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
     // Remove any character that's not a digit, decimal point, or minus (if allowed)
     const pattern = allowNegative ? /[^0-9.-]/g : /[^0-9.]/g;
     const cleaned = val.replace(pattern, '');
-    
+
     // Handle negative sign - only allow at the start
     let processed = cleaned;
     if (allowNegative) {
@@ -60,13 +60,13 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
         }
       }
     }
-    
+
     // Ensure only one decimal point
     const parts = processed.split('.');
-    const sanitized = parts.length > 2 
-      ? `${parts[0]}.${parts.slice(1).join('')}` 
+    const sanitized = parts.length > 2
+      ? `${parts[0]}.${parts.slice(1).join('')}`
       : processed;
-    
+
     setValue(sanitized);
   }, [allowNegative]);
 

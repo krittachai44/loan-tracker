@@ -33,7 +33,7 @@ vi.mock('../../db', () => ({
 describe('useCSVImport', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    
+
     // Mock successful transaction
     (db.transaction as any).mockImplementation(async (_mode: string, _tables: any[], callback: Function) => {
       return await callback();
@@ -64,7 +64,7 @@ describe('useCSVImport', () => {
   describe('CSV parsing logic', () => {
     it('should detect LOAN section correctly', () => {
       const { result } = renderHook(() => useCSVImport());
-      
+
       // Access the hook's internal logic through a test CSV
       expect(result.current).toBeDefined();
     });

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Select, MenuItem, FormControl, InputLabel, Box, Typography } from '@mui/material';
+import { Select, MenuItem, FormControl, Box, Typography } from '@mui/material';
 import { db } from '../db';
 import { Button } from './ui/Button';
 import { Input, AmountInput } from './ui/Input';
@@ -49,13 +49,13 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
 
     // Initialize with one rate segment
     const [rates, setRates] = React.useState<RateSegmentState[]>([{
-        value: 0,
+        value: '' as any,
         isoStartDate: isoNow,
         type: 'fixed'
     }]);
 
     const addRate = () => {
-        setRates([...rates, { value: 0, isoStartDate: '', type: 'fixed' as const }]);
+        setRates([...rates, { value: '' as any, isoStartDate: '', type: 'fixed' as const }]);
     };
 
     const removeRate = (index: number) => {
@@ -132,19 +132,23 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
                                 Interest Rates
                             </Typography>
                             {rates.map((r, index) => (
-                                <Box key={index} sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
+                                <Box key={index} sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 2, border: 1, borderColor: 'divider', borderRadius: 1, mb: 1 }}>
                                     <Box sx={{ display: 'flex', gap: 2 }}>
-                                        <FormControl sx={{ width: '33%' }} size="small">
-                                            <InputLabel>Type</InputLabel>
-                                            <Select
-                                                value={r.type}
-                                                onChange={(e) => updateRate(index, 'type', e.target.value as 'fixed' | 'float')}
-                                                label="Type"
-                                            >
-                                                <MenuItem value="fixed">Fixed</MenuItem>
-                                                <MenuItem value="float">Float (MRR)</MenuItem>
-                                            </Select>
-                                        </FormControl>
+                                        <Box sx={{ flex: 1 }}>
+                                            <Typography variant="caption" component="label" display="block" gutterBottom>
+                                                Type
+                                            </Typography>
+                                            <FormControl fullWidth size="small">
+                                                <Select
+                                                    value={r.type}
+                                                    onChange={(e) => updateRate(index, 'type', e.target.value as 'fixed' | 'float')}
+                                                    displayEmpty
+                                                >
+                                                    <MenuItem value="fixed">Fixed</MenuItem>
+                                                    <MenuItem value="float">Float (MRR)</MenuItem>
+                                                </Select>
+                                            </FormControl>
+                                        </Box>
                                         <Box sx={{ flex: 1 }}>
                                             <RateInput
                                                 value={r.value}

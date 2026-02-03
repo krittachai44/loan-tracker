@@ -8,17 +8,17 @@ import { InfoCard } from './InfoCard';
 import type { Loan } from '../types';
 
 interface DashboardSidebarProps {
-    loan: Loan;
+  loan: Loan;
 }
 
 export const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ loan }) => {
-    return (
-        <Stack spacing={3}>
-            <LoanDetailsManager loan={loan} />
-            <LoanRateManager loan={loan} />
-            <PaymentForm loanId={loan.id!} />
-            <MRRManager />
-            <InfoCard />
-        </Stack>
-    );
+  return (
+    <Stack spacing={3}>
+      <LoanDetailsManager loan={loan} />
+      <LoanRateManager loan={loan} />
+      <PaymentForm loanId={loan.id!} />
+      <MRRManager />
+      <InfoCard />
+    </Stack>
+  );
 };

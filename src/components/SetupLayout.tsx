@@ -1,18 +1,18 @@
 import * as React from 'react';
-import { 
-    Box, 
-    IconButton, 
-    Tooltip,
-    Snackbar,
-    Alert,
-    Dialog,
-    DialogTitle,
-    DialogContent,
-    DialogActions,
-    Button,
-    Paper,
-    Divider,
-    Typography
+import {
+  Box,
+  IconButton,
+  Tooltip,
+  Snackbar,
+  Alert,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
+  Paper,
+  Divider,
+  Typography
 } from '@mui/material';
 import { FileUpload, HelpOutline, Download, Info } from '@mui/icons-material';
 import { AppHeader } from './AppHeader';
@@ -22,259 +22,258 @@ import { useCSVImport } from '../hooks/useCSVImport';
 import { ACCEPTED_FILE_TYPES, SAMPLE_CSV_DATA } from '../constants/csv';
 
 export const SetupLayout: React.FC = () => {
-    const fileInputRef = React.useRef<HTMLInputElement>(null);
-    const [sampleDialogOpen, setSampleDialogOpen] = React.useState(false);
-    const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-        open: false,
-        message: '',
-        severity: 'success'
-    });
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const [sampleDialogOpen, setSampleDialogOpen] = React.useState(false);
+  const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
+    open: false,
+    message: '',
+    severity: 'success'
+  });
 
-    const { importFromFile, isImporting } = useCSVImport();
+  const { importFromFile, isImporting } = useCSVImport();
 
-    const handleUploadClick = () => {
-        fileInputRef.current?.click();
-    };
+  const handleUploadClick = () => {
+    fileInputRef.current?.click();
+  };
 
-    const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (!file) return;
+  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
 
-        try {
-            const result = await importFromFile(file);
-            
-            if (result.success) {
-                setSnackbar({
-                    open: true,
-                    message: 'Data imported successfully!',
-                    severity: 'success'
-                });
-                
-                // No need for window.location.reload()
-                // Dexie's useLiveQuery will automatically detect the changes
-                // and re-render the components with the new data
-            } else {
-                setSnackbar({
-                    open: true,
-                    message: result.error || 'Failed to import data',
-                    severity: 'error'
-                });
-            }
-        } catch (error) {
-            console.error('Import error:', error);
-            setSnackbar({
-                open: true,
-                message: error instanceof Error ? error.message : 'Failed to import data',
-                severity: 'error'
-            });
-        } finally {
-            // Reset file input so the same file can be selected again
-            if (fileInputRef.current) {
-                fileInputRef.current.value = '';
-            }
-        }
-    };
+    try {
+      const result = await importFromFile(file);
 
-    const handleDownloadSample = () => {
-        const blob = new Blob([SAMPLE_CSV_DATA], { type: 'text/csv;charset=utf-8;' });
-        const link = document.createElement('a');
-        const url = URL.createObjectURL(blob);
-        link.href = url;
-        link.download = 'loan-tracker-sample.csv';
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        URL.revokeObjectURL(url);
-        
+      if (result.success) {
         setSnackbar({
-            open: true,
-            message: 'Sample CSV downloaded!',
-            severity: 'success'
+          open: true,
+          message: 'Data imported successfully!',
+          severity: 'success'
         });
-    };
 
-    return (
-        <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
-            {/* Header Bar */}
-            <AppHeader 
-                loanName="Initial Setup"
-                hideActions
-                actions={
-                    <>
-                        <Tooltip title="View Sample Format">
-                            <IconButton 
-                                onClick={() => setSampleDialogOpen(true)}
-                                size="small"
-                                sx={{
-                                    color: 'text.secondary',
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(0, 0, 0, 0.04)',
-                                        color: 'primary.main'
-                                    }
-                                }}
-                            >
-                                <HelpOutline fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <Tooltip title="Import CSV Data">
-                            <IconButton 
-                                onClick={handleUploadClick}
-                                size="small"
-                                sx={{
-                                    color: 'primary.main',
-                                    '&:hover': {
-                                        backgroundColor: 'rgba(99, 102, 241, 0.08)'
-                                    }
-                                }}
-                            >
-                                <FileUpload fontSize="small" />
-                            </IconButton>
-                        </Tooltip>
-                        <input
-                            ref={fileInputRef}
-                            type="file"
-                            accept={ACCEPTED_FILE_TYPES}
-                            style={{ display: 'none' }}
-                            onChange={handleFileUpload}
-                            disabled={isImporting}
-                        />
-                    </>
-                }
-            />
+        // No need for window.location.reload()
+        // Dexie's useLiveQuery will automatically detect the changes
+        // and re-render the components with the new data
+      } else {
+        setSnackbar({
+          open: true,
+          message: result.error || 'Failed to import data',
+          severity: 'error'
+        });
+      }
+    } catch (error) {
+      setSnackbar({
+        open: true,
+        message: error instanceof Error ? error.message : 'Failed to import data',
+        severity: 'error'
+      });
+    } finally {
+      // Reset file input so the same file can be selected again
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    }
+  };
 
-            {/* Main Content */}
-            <Box sx={{ display: 'flex', gap: 6, p: 6 }}>
-                {/* Left Side - Setup Form */}
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                    <LoanSetup onComplete={() => { }} />
-                </Box>
-                
-                {/* Right Side - MRR Manager */}
-                <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 400 }}>
-                    <MRRManager />
-                </Box>
-            </Box>
+  const handleDownloadSample = () => {
+    const blob = new Blob([SAMPLE_CSV_DATA], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    const url = URL.createObjectURL(blob);
+    link.href = url;
+    link.download = 'loan-tracker-sample.csv';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
 
-            {/* Sample Format Dialog */}
-            <Dialog
-                open={sampleDialogOpen}
-                onClose={() => setSampleDialogOpen(false)}
-                maxWidth="md"
-                fullWidth
-                slotProps={{
-                    paper: {
-                        sx: {
-                            borderRadius: 3,
-                            boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
-                        }
-                    }
+    setSnackbar({
+      open: true,
+      message: 'Sample CSV downloaded!',
+      severity: 'success'
+    });
+  };
+
+  return (
+    <Box sx={{ minHeight: '100vh', bgcolor: 'background.default' }}>
+      {/* Header Bar */}
+      <AppHeader
+        loanName="Initial Setup"
+        hideActions
+        actions={
+          <>
+            <Tooltip title="View Sample Format">
+              <IconButton
+                onClick={() => setSampleDialogOpen(true)}
+                size="small"
+                sx={{
+                  color: 'text.secondary',
+                  '&:hover': {
+                    backgroundColor: 'rgba(0, 0, 0, 0.04)',
+                    color: 'primary.main'
+                  }
                 }}
-            >
-                <DialogTitle sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    gap: 1.5,
-                    pb: 2
-                }}>
-                    <Box
-                        sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: 2,
-                            backgroundColor: 'rgba(99, 102, 241, 0.1)',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            color: 'primary.main'
-                        }}
-                    >
-                        <Info />
-                    </Box>
-                    <Box>
-                        <Typography variant="h6" sx={{ fontWeight: 600 }}>
-                            CSV Import Format
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                            Follow this structure to import your loan data
-                        </Typography>
-                    </Box>
-                </DialogTitle>
-                <Divider />
-                <DialogContent sx={{ pt: 3 }}>
-                    <Paper 
-                        variant="outlined" 
-                        sx={{ 
-                            p: 2, 
-                            bgcolor: 'background.paper',
-                            fontFamily: 'monospace',
-                            fontSize: '0.875rem',
-                            overflow: 'auto',
-                            maxHeight: '60vh',
-                            color: 'text.primary'
-                        }}
-                    >
-                        <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
-{SAMPLE_CSV_DATA}
-                        </pre>
-                    </Paper>
-                    
-                    <Box sx={{ mt: 3, p: 2, bgcolor: 'info.lighter', borderRadius: 2, border: '1px solid', borderColor: 'info.light' }}>
-                        <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'info.main' }}>
-                            📋 Format Guidelines:
-                        </Typography>
-                        <Typography variant="body2" component="div" sx={{ color: 'text.secondary' }}>
-                            <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
-                                <li><strong>Sections</strong> start with # (LOAN DETAILS, RATE SEGMENTS, REFERENCE RATES, PAYMENT HISTORY)</li>
-                                <li><strong>Rate Type</strong> can be "fixed" (fixed rate) or "float" (variable rate with margin)</li>
-                                <li><strong>Date Format</strong> must be YYYY-MM-DD (e.g., 2024-01-01)</li>
-                                <li><strong>Numbers</strong> should not include commas or currency symbols</li>
-                                <li><strong>File Types</strong> supported: .csv, .xlsx, .xls</li>
-                            </ul>
-                        </Typography>
-                    </Box>
-                </DialogContent>
-                <Divider />
-                <DialogActions sx={{ p: 2.5, gap: 1 }}>
-                    <Button 
-                        onClick={handleDownloadSample}
-                        startIcon={<Download />}
-                        variant="outlined"
-                        sx={{ borderRadius: 2 }}
-                    >
-                        Download Sample
-                    </Button>
-                    <Button 
-                        onClick={() => setSampleDialogOpen(false)}
-                        variant="contained"
-                        sx={{ 
-                            borderRadius: 2,
-                            boxShadow: 'none',
-                            '&:hover': {
-                                boxShadow: 'none'
-                            }
-                        }}
-                    >
-                        Got It
-                    </Button>
-                </DialogActions>
-            </Dialog>
+              >
+                <HelpOutline fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Import CSV Data">
+              <IconButton
+                onClick={handleUploadClick}
+                size="small"
+                sx={{
+                  color: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'rgba(99, 102, 241, 0.08)'
+                  }
+                }}
+              >
+                <FileUpload fontSize="small" />
+              </IconButton>
+            </Tooltip>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept={ACCEPTED_FILE_TYPES}
+              style={{ display: 'none' }}
+              onChange={handleFileUpload}
+              disabled={isImporting}
+            />
+          </>
+        }
+      />
 
-            {/* Snackbar for notifications */}
-            <Snackbar
-                open={snackbar.open}
-                autoHideDuration={6000}
-                onClose={() => setSnackbar({ ...snackbar, open: false })}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-            >
-                <Alert 
-                    onClose={() => setSnackbar({ ...snackbar, open: false })} 
-                    severity={snackbar.severity}
-                    variant="filled"
-                    sx={{ width: '100%' }}
-                >
-                    {snackbar.message}
-                </Alert>
-            </Snackbar>
+      {/* Main Content */}
+      <Box sx={{ display: 'flex', gap: 6, p: 6 }}>
+        {/* Left Side - Setup Form */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+          <LoanSetup onComplete={() => { }} />
         </Box>
-    );
+
+        {/* Right Side - MRR Manager */}
+        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', justifyContent: 'center', maxWidth: 400 }}>
+          <MRRManager />
+        </Box>
+      </Box>
+
+      {/* Sample Format Dialog */}
+      <Dialog
+        open={sampleDialogOpen}
+        onClose={() => setSampleDialogOpen(false)}
+        maxWidth="md"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: 3,
+              boxShadow: '0 20px 25px -5px rgb(0 0 0 / 0.1)'
+            }
+          }
+        }}
+      >
+        <DialogTitle sx={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: 1.5,
+          pb: 2
+        }}>
+          <Box
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: 2,
+              backgroundColor: 'rgba(99, 102, 241, 0.1)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: 'primary.main'
+            }}
+          >
+            <Info />
+          </Box>
+          <Box>
+            <Typography variant="h6" sx={{ fontWeight: 600 }}>
+              CSV Import Format
+            </Typography>
+            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              Follow this structure to import your loan data
+            </Typography>
+          </Box>
+        </DialogTitle>
+        <Divider />
+        <DialogContent sx={{ pt: 3 }}>
+          <Paper
+            variant="outlined"
+            sx={{
+              p: 2,
+              bgcolor: 'background.paper',
+              fontFamily: 'monospace',
+              fontSize: '0.875rem',
+              overflow: 'auto',
+              maxHeight: '60vh',
+              color: 'text.primary'
+            }}
+          >
+            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
+              {SAMPLE_CSV_DATA}
+            </pre>
+          </Paper>
+
+          <Box sx={{ mt: 3, p: 2, bgcolor: 'info.lighter', borderRadius: 2, border: '1px solid', borderColor: 'info.light' }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600, mb: 1, color: 'info.main' }}>
+              📋 Format Guidelines:
+            </Typography>
+            <Typography variant="body2" component="div" sx={{ color: 'text.secondary' }}>
+              <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
+                <li><strong>Sections</strong> start with # (LOAN DETAILS, RATE SEGMENTS, REFERENCE RATES, PAYMENT HISTORY)</li>
+                <li><strong>Rate Type</strong> can be "fixed" (fixed rate) or "float" (variable rate with margin)</li>
+                <li><strong>Date Format</strong> must be YYYY-MM-DD (e.g., 2024-01-01)</li>
+                <li><strong>Numbers</strong> should not include commas or currency symbols</li>
+                <li><strong>File Types</strong> supported: .csv, .xlsx, .xls</li>
+              </ul>
+            </Typography>
+          </Box>
+        </DialogContent>
+        <Divider />
+        <DialogActions sx={{ p: 2.5, gap: 1 }}>
+          <Button
+            onClick={handleDownloadSample}
+            startIcon={<Download />}
+            variant="outlined"
+            sx={{ borderRadius: 2 }}
+          >
+            Download Sample
+          </Button>
+          <Button
+            onClick={() => setSampleDialogOpen(false)}
+            variant="contained"
+            sx={{
+              borderRadius: 2,
+              boxShadow: 'none',
+              '&:hover': {
+                boxShadow: 'none'
+              }
+            }}
+          >
+            Got It
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Snackbar for notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={() => setSnackbar({ ...snackbar, open: false })}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setSnackbar({ ...snackbar, open: false })}
+          severity={snackbar.severity}
+          variant="filled"
+          sx={{ width: '100%' }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
+    </Box>
+  );
 };

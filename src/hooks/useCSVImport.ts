@@ -38,12 +38,12 @@ export const useCSVImport = () => {
 
   const isHeaderLine = (line: string, section: string | null): boolean => {
     const lowerLine = line.toLowerCase();
-    
+
     if (section === CSV_SECTIONS.LOAN && lowerLine.startsWith(CSV_FIELD_HEADERS.LOAN)) return true;
     if (section === CSV_SECTIONS.RATES && lowerLine.startsWith(CSV_FIELD_HEADERS.RATES)) return true;
     if (section === CSV_SECTIONS.REFERENCE && lowerLine.startsWith(CSV_FIELD_HEADERS.REFERENCE)) return true;
     if (section === CSV_SECTIONS.PAYMENTS && lowerLine.startsWith(CSV_FIELD_HEADERS.PAYMENTS)) return true;
-    
+
     return false;
   };
 
@@ -52,7 +52,7 @@ export const useCSVImport = () => {
       f = f.replace(/,$/, '').trim();
       return f.startsWith('"') && f.endsWith('"') ? f.slice(1, -1) : f;
     }) || [];
-    
+
     return {
       date: fields[0],
       amount: fields[1],
@@ -61,10 +61,8 @@ export const useCSVImport = () => {
   };
 
   const parseCSVContent = async (csvContent: string): Promise<void> => {
-    console.log('Starting CSV parse...');
     const lines = csvContent.split('\n').map(line => line.trim()).filter(line => line);
-    console.log('Total lines:', lines.length);
-    
+
     let section: string | null = null;
     const loanData: Partial<Loan> = { rates: [] };
     const referenceRates: Omit<ReferenceRate, 'id'>[] = [];
@@ -76,13 +74,11 @@ export const useCSVImport = () => {
       // Detect section headers
       if (line.startsWith('#')) {
         section = detectSection(line);
-        console.log('Section changed to:', section);
         continue;
       }
 
       // Skip header rows
       if (isHeaderLine(line, section)) {
-        console.log('Skipping header line:', line);
         continue;
       }
 
@@ -96,17 +92,12 @@ export const useCSVImport = () => {
 
       // Parse LOAN section
       if (section === CSV_SECTIONS.LOAN) {
-        console.log('LOAN section - raw field:', field1, 'normalized:', normalizedField, 'value:', field2);
-        
         if (normalizedField === LOAN_FIELDS.NAME && field2) {
           loanData.name = unescapeCSV(field2);
-          console.log('✓ Parsed name:', loanData.name);
         } else if (normalizedField === LOAN_FIELDS.PRINCIPAL && field2) {
           loanData.principal = parseFloat(field2);
-          console.log('✓ Parsed principal:', loanData.principal);
         } else if ((normalizedField === LOAN_FIELDS.START_DATE || normalizedField === LOAN_FIELDS.DATE) && field2) {
           loanData.startDate = new Date(field2);
-          console.log('✓ Parsed start date:', loanData.startDate);
         }
       }
       // Parse RATES section
@@ -117,7 +108,6 @@ export const useCSVImport = () => {
           value: parseFloat(field3),
         };
         loanData.rates?.push(rate);
-        console.log('Parsed rate:', rate);
       }
       // Parse REFERENCE section
       else if (section === CSV_SECTIONS.REFERENCE && field1 && field2) {
@@ -126,12 +116,11 @@ export const useCSVImport = () => {
           rate: parseFloat(field2),
         };
         referenceRates.push(refRate);
-        console.log('Parsed reference rate:', refRate);
       }
       // Parse PAYMENTS section
       else if (section === CSV_SECTIONS.PAYMENTS && field1 && field2) {
         const { date, amount, note } = parsePaymentLine(line);
-        
+
         if (date && amount) {
           const payment = {
             loanId: 0,
@@ -140,19 +129,13 @@ export const useCSVImport = () => {
             note: note || undefined,
           };
           payments.push(payment);
-          console.log('Parsed payment:', payment);
         }
       }
     }
 
-    console.log('Final loan data:', loanData);
-    console.log('Reference rates count:', referenceRates.length);
-    console.log('Payments count:', payments.length);
-
     // Fallback: use first rate's start date if loan start date is missing
     if (!loanData.startDate && loanData.rates && loanData.rates.length > 0) {
       loanData.startDate = loanData.rates[0].startDate;
-      console.log('Using first rate start date as loan start date:', loanData.startDate);
     }
 
     // Validate required fields
@@ -161,9 +144,7 @@ export const useCSVImport = () => {
       if (!loanData.name) missing.push('Name');
       if (!loanData.principal) missing.push('Principal');
       if (!loanData.startDate) missing.push('Start Date');
-      
-      console.error('Validation failed! Loan data:', loanData);
-      console.error('Missing fields:', missing);
+
       throw new Error(`Invalid CSV format: Missing required fields: ${missing.join(', ')}`);
     }
 
@@ -172,49 +153,40 @@ export const useCSVImport = () => {
     }
 
     // Save to database
-    console.log('Starting database transaction...');
     await db.transaction('rw', [db.loans, db.referenceRates, db.payments], async () => {
       const loanId = await db.loans.add(loanData as Loan) as number;
-      console.log('Loan added with ID:', loanId);
-      
+
       if (referenceRates.length > 0) {
         await db.referenceRates.bulkAdd(referenceRates);
-        console.log('Reference rates added');
       }
-      
+
       if (payments.length > 0) {
         const paymentsWithLoanId = payments.map(p => ({ ...p, loanId }));
         await db.payments.bulkAdd(paymentsWithLoanId);
-        console.log('Payments added');
       }
     });
-    console.log('Database transaction complete');
   };
 
   const importFromFile = async (file: File): Promise<ImportResult> => {
     setIsImporting(true);
-    
+
     try {
       const data = await file.arrayBuffer();
       const workbook = XLSX.read(data);
       const worksheet = workbook.Sheets[workbook.SheetNames[0]];
       const csvData = XLSX.utils.sheet_to_csv(worksheet);
-      
-      console.log('Parsed CSV data:', csvData);
-      
+
       await parseCSVContent(csvData);
-      
+
       // Verify data was saved
       const savedLoans = await db.loans.toArray();
-      console.log('Loans after import:', savedLoans);
-      
+
       if (savedLoans.length === 0) {
         throw new Error('Data was not saved to database');
       }
-      
+
       return { success: true };
     } catch (error) {
-      console.error('Import error:', error);
       return {
         success: false,
         error: error instanceof Error ? error.message : 'Failed to import data',

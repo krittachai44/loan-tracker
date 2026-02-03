@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
-import { 
-  calculateLoanSeries, 
-  formatNumberInput, 
+import {
+  calculateLoanSeries,
+  formatNumberInput,
   formatDateForDisplay,
   parseFormattedNumber,
   parseDateFromInput,
@@ -197,7 +197,7 @@ describe('Utils', () => {
     it('should calculate balance correctly after payment', () => {
       const result = calculateLoanSeries(mockLoan, mockPayments, mockReferenceRates);
       const firstPayment = result.find(entry => entry.isPayment);
-      
+
       if (firstPayment) {
         expect(firstPayment.remainingPrincipal).toBeLessThan(mockLoan.principal);
       }
@@ -255,7 +255,7 @@ describe('Utils', () => {
 
     it('should maintain chronological order', () => {
       const result = calculateLoanSeries(mockLoan, mockPayments, mockReferenceRates);
-      
+
       for (let i = 1; i < result.length; i++) {
         expect(result[i].date.getTime()).toBeGreaterThanOrEqual(result[i - 1].date.getTime());
       }
@@ -264,7 +264,7 @@ describe('Utils', () => {
     it('should calculate interest correctly for fixed rate', () => {
       const result = calculateLoanSeries(mockLoan, mockPayments, mockReferenceRates);
       const paymentEntry = result.find(entry => entry.isPayment);
-      
+
       if (paymentEntry) {
         expect(paymentEntry.interest).toBeGreaterThan(0);
         expect(paymentEntry.principalPaid).toBeGreaterThan(0);
