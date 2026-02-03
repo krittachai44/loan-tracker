@@ -7,12 +7,14 @@ import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
+import { useNumericInput } from '../hooks';
 
 export const MRRManager: React.FC = () => {
   const rates = useLiveQuery(() => db.referenceRates.orderBy('date').reverse().toArray());
   const isoNow = new Date().toISOString().split('T')[0];
   const [isoDate, setIsoDate] = React.useState(isoNow);
   const [rate, setRate] = React.useState('');
+  const { handleKeyDown, handlePaste } = useNumericInput({ allowDecimal: true });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -53,26 +55,8 @@ export const MRRManager: React.FC = () => {
               type="text"
               value={rate}
               onChange={(e) => setRate(e.target.value.replace(/[^0-9.]/g, ''))}
-              onKeyDown={(e) => {
-                // Allow: backspace, delete, tab, escape, enter, decimal point
-                if (["Backspace", "Delete", "Tab", "Escape", "Enter", "."].includes(e.key) ||
-                  // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                  (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) ||
-                  // Allow: arrow keys
-                  ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-                  return;
-                }
-                // Prevent if not a number
-                if (!/^[0-9]$/.test(e.key)) {
-                  e.preventDefault();
-                }
-              }}
-              onPaste={(e) => {
-                e.preventDefault();
-                const pastedText = e.clipboardData.getData('text');
-                const numericOnly = pastedText.replace(/[^0-9.]/g, '');
-                setRate(rate.slice(0, (e.target as HTMLInputElement).selectionStart || 0) + numericOnly + rate.slice((e.target as HTMLInputElement).selectionEnd || 0));
-              }}
+              onKeyDown={handleKeyDown}
+              onPaste={(e) => handlePaste(e, rate, (newValue) => setRate(newValue.replace(/[^0-9.]/g, '')))}
               placeholder="7.5"
               required
               size="small"

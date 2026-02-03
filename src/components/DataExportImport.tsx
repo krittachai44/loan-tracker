@@ -3,7 +3,8 @@ import {
   IconButton,
   Tooltip
 } from '@mui/material';
-import { FileDownload, FileUpload } from '@mui/icons-material';
+import FileDownload from '@mui/icons-material/FileDownload';
+import FileUpload from '@mui/icons-material/FileUpload';
 import * as XLSX from 'xlsx';
 import { db } from '../db';
 import { type Loan, type Payment, type ReferenceRate } from '../types';

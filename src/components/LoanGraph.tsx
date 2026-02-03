@@ -11,7 +11,7 @@ import {
   Legend
 } from 'recharts';
 import { format, subMonths } from 'date-fns';
-import { TrendingDown } from '@mui/icons-material';
+import TrendingDown from '@mui/icons-material/TrendingDown';
 import type { PaymentLog } from '../utils';
 
 interface LoanGraphProps {

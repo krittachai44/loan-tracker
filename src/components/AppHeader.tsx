@@ -11,7 +11,11 @@ import {
   DialogActions,
   Button
 } from '@mui/material';
-import { Refresh, AccountBalance, Warning, Brightness4, Brightness7 } from '@mui/icons-material';
+import Refresh from '@mui/icons-material/Refresh';
+import AccountBalance from '@mui/icons-material/AccountBalance';
+import Warning from '@mui/icons-material/Warning';
+import Brightness4 from '@mui/icons-material/Brightness4';
+import Brightness7 from '@mui/icons-material/Brightness7';
 import { resetDatabase } from '../db';
 import { DataExportImport } from './DataExportImport';
 import { useThemeMode } from '../ThemeContext';

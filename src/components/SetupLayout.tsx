@@ -14,7 +14,10 @@ import {
   Divider,
   Typography
 } from '@mui/material';
-import { FileUpload, HelpOutline, Download, Info } from '@mui/icons-material';
+import FileUpload from '@mui/icons-material/FileUpload';
+import HelpOutline from '@mui/icons-material/HelpOutline';
+import Download from '@mui/icons-material/Download';
+import Info from '@mui/icons-material/Info';
 import { AppHeader } from './AppHeader';
 import { LoanSetup } from './LoanSetup';
 import { MRRManager } from './MRRManager';

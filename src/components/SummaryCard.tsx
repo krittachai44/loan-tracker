@@ -1,6 +1,9 @@
 import * as React from 'react';
 import { Typography, Box, Paper } from '@mui/material';
-import { TrendingUp, TrendingDown, AttachMoney, Schedule } from '@mui/icons-material';
+import TrendingUp from '@mui/icons-material/TrendingUp';
+import TrendingDown from '@mui/icons-material/TrendingDown';
+import AttachMoney from '@mui/icons-material/AttachMoney';
+import Schedule from '@mui/icons-material/Schedule';
 
 interface SummaryCardProps {
   title: string;

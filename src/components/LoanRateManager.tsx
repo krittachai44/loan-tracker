@@ -7,6 +7,7 @@ import { Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { formatNumberInput, parseFormattedNumber } from '../utils';
+import { useNumericInput } from '../hooks';
 import type { Loan } from '../types';
 
 interface LoanRateManagerProps {
@@ -17,6 +18,7 @@ export const LoanRateManager: React.FC<LoanRateManagerProps> = ({ loan }) => {
   // Local state for editing rates
   // We map rates to a state friendly format
   const [isEditing, setIsEditing] = React.useState(false);
+  const { handleKeyDown, handlePaste } = useNumericInput({ allowNegative: true, allowDecimal: true });
 
   // Deep copy rates to avoid mutating props directly during edit
   const [rates, setRates] = React.useState(
@@ -133,27 +135,8 @@ export const LoanRateManager: React.FC<LoanRateManagerProps> = ({ loan }) => {
                     type="text"
                     value={r.value}
                     onChange={(e) => updateRate(index, 'value', formatNumberInput(e.target.value))}
-                    onKeyDown={(e) => {
-                      // Allow: backspace, delete, tab, escape, enter, decimal point, minus sign
-                      if (["Backspace", "Delete", "Tab", "Escape", "Enter", ".", "-"].includes(e.key) ||
-                        // Allow: Ctrl+A, Ctrl+C, Ctrl+V, Ctrl+X
-                        (e.ctrlKey && ["a", "c", "v", "x"].includes(e.key.toLowerCase())) ||
-                        // Allow: arrow keys
-                        ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-                        return;
-                      }
-                      // Prevent if not a number
-                      if (!/^[0-9]$/.test(e.key)) {
-                        e.preventDefault();
-                      }
-                    }}
-                    onPaste={(e) => {
-                      e.preventDefault();
-                      const pastedText = e.clipboardData.getData('text');
-                      const numericOnly = pastedText.replace(/[^0-9.-]/g, '');
-                      const currentValue = r.value;
-                      updateRate(index, 'value', formatNumberInput(currentValue.slice(0, (e.target as HTMLInputElement).selectionStart || 0) + numericOnly + currentValue.slice((e.target as HTMLInputElement).selectionEnd || 0)));
-                    }}
+                    onKeyDown={handleKeyDown}
+                    onPaste={(e) => handlePaste(e, r.value, (newValue) => updateRate(index, 'value', formatNumberInput(newValue)))}
                     placeholder={r.type === 'fixed' ? "5.5" : "-1.5"}
                     label={r.type === 'fixed' ? 'Rate (%)' : 'Spread'}
                     required
