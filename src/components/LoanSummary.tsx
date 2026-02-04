@@ -75,19 +75,17 @@ export const LoanSummary = ({ loan, series, totalPayments, payments, referenceRa
         />
       </Grid2>
 
-      {payoffPrediction && (
-        <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
-          <SummaryCard
-            title="Est. Payoff Time"
-            value={payoffPrediction.estimatedYearsLeft}
-            valuePrefix=""
-            valueSuffix={` year${payoffPrediction.estimatedYearsLeft === 1 ? '' : 's'}`}
-            subtitle={`~${payoffPrediction.estimatedMonthsLeft} months | calculated based on last 12 current payment trends`}
-            valueColor="info.main"
-            icon="time"
-          />
-        </Grid2>
-      )}
+      <Grid2 size={{ xs: 12, sm: 6, md: 3 }}>
+        <SummaryCard
+          title="Est. Payoff Time"
+          value={payoffPrediction?.estimatedYearsLeft ?? '-'}
+          valuePrefix=""
+          valueSuffix={payoffPrediction ? ` year${payoffPrediction.estimatedYearsLeft === 1 ? '' : 's'}` : ''}
+          subtitle={payoffPrediction ? `~${payoffPrediction.estimatedMonthsLeft} months | ${payoffPrediction.confidence} confidence | calculated based on last ${Math.min(totalPayments, 12)} payment${Math.min(totalPayments, 12) === 1 ? '' : 's'}` : 'At least 3 payment records are needed to calculate'}
+          valueColor="info.main"
+          icon="time"
+        />
+      </Grid2>
     </Grid2>
   );
 };
