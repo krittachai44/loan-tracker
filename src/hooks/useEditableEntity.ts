@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 
 /**
  * Configuration for editable entity hook
@@ -63,20 +63,12 @@ export function useEditableEntity<TEntity, TState>({
   const [isSaving, setIsSaving] = useState(false);
 
   /**
-   * Reset edit state when entity changes or when exiting edit mode
-   */
-  useEffect(() => {
-    if (!isEditing) {
-      setEditState(initializeEditState(entity));
-    }
-  }, [entity, isEditing, initializeEditState]);
-
-  /**
    * Enter edit mode
    */
   const startEdit = useCallback(() => {
+    setEditState(initializeEditState(entity));
     setIsEditing(true);
-  }, []);
+  }, [entity, initializeEditState]);
 
   /**
    * Exit edit mode without saving
