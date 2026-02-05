@@ -25,18 +25,22 @@ export const PaymentForm = ({ loanId, initialPayment, onComplete }: PaymentFormP
   const date = useDateInput(initialPayment?.date);
   const [note, setNote] = useState(initialPayment?.note || '');
 
+  // Retrieve stable functions for effect dependencies
+  const { setNumericValue: setAmountValue, reset: resetAmount } = amount;
+  const { setDateValue: setAmountDate, reset: resetDate } = date;
+
   // Reset form when initialPayment changes
   useEffect(() => {
     if (initialPayment) {
-      amount.setNumericValue(initialPayment.amount);
-      date.setDateValue(initialPayment.date);
+      setAmountValue(initialPayment.amount);
+      setAmountDate(initialPayment.date);
       setNote(initialPayment.note || '');
     } else {
-      amount.reset();
-      date.reset();
+      resetAmount();
+      resetDate();
       setNote('');
     }
-  }, [initialPayment?.id]);
+  }, [initialPayment, setAmountValue, setAmountDate, resetAmount, resetDate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

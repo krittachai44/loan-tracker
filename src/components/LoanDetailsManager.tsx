@@ -26,41 +26,43 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
   const { showWarning, showError } = useSnackbar();
   const principal = useNumberInput({ initialValue: loan.principal, min: 0 });
 
-  const { isEditing, editState, startEdit, cancelEdit, saveEdit, updateField } = 
-    useEditableEntity<Loan, EditState>({
-      entity: loan,
-      initializeEditState: (loan) => ({
-        name: loan.name,
-        principal: loan.principal.toString(),
-        principalIsValid: true,
-        isoStartDate: toISODate(loan.startDate)
-      }),
-      validate: (state) => {
-        if (!state.name || !state.isoStartDate) {
-          return 'Please fill in all fields.';
-        }
-        if (!state.principalIsValid) {
-          return 'Please enter a valid principal amount.';
-        }
-        return null;
-      },
-      onSave: async (state) => {
-        if (loan.id) {
-          await loanRepository.update(loan.id, {
-            name: state.name,
-            principal: principal.numericValue,
-            startDate: new Date(state.isoStartDate)
-          });
-        }
-      },
-      onSaveError: (error) => {
-        showWarning(error.message);
-        if (error.message !== 'Please fill in all fields.' && error.message !== 'Please enter a valid principal amount.') {
-          showError('Failed to update loan details. Please try again.');
-          console.error('Error updating loan:', error);
-        }
+  const config = React.useMemo(() => ({
+    entity: loan,
+    initializeEditState: (loan: Loan) => ({
+      name: loan.name,
+      principal: loan.principal.toString(),
+      principalIsValid: true,
+      isoStartDate: toISODate(loan.startDate)
+    }),
+    validate: (state: EditState) => {
+      if (!state.name || !state.isoStartDate) {
+        return 'Please fill in all fields.';
       }
-    });
+      if (!state.principalIsValid) {
+        return 'Please enter a valid principal amount.';
+      }
+      return null;
+    },
+    onSave: async (state: EditState) => {
+      if (loan.id) {
+        await loanRepository.update(loan.id, {
+          name: state.name,
+          principal: principal.numericValue,
+          startDate: new Date(state.isoStartDate)
+        });
+      }
+    },
+    onSaveError: (error: Error) => {
+      showWarning(error.message);
+      if (error.message !== 'Please fill in all fields.' && error.message !== 'Please enter a valid principal amount.') {
+        showError('Failed to update loan details. Please try again.');
+        console.error('Error updating loan:', error);
+      }
+    }
+  }), [loan, principal.numericValue, showWarning, showError]);
+
+  const { isEditing, editState, startEdit, cancelEdit, saveEdit, updateField } = 
+    useEditableEntity<Loan, EditState>(config);
 
   // Sync principal input state with editState
   React.useEffect(() => {

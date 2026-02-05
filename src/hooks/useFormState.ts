@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { toISODate, getCurrentISODate } from '../utils/date';
 
 interface UseNumberInputOptions {
@@ -44,7 +44,7 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
     }
   }
 
-  const handleSetValue = (val: string) => {
+  const handleSetValue = useCallback((val: string) => {
     // Remove any character that's not a digit, decimal point, or minus (if allowed)
     const pattern = allowNegative ? /[^0-9.-]/g : /[^0-9.]/g;
     const cleaned = val.replace(pattern, '');
@@ -69,15 +69,15 @@ export const useNumberInput = (options: UseNumberInputOptions = {}): UseNumberIn
       : processed;
 
     setValue(sanitized);
-  };
+  }, [allowNegative]);
 
-  const setNumericValue = (num: number) => {
+  const setNumericValue = useCallback((num: number) => {
     setValue(num.toString());
-  };
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     setValue(typeof initialValue === 'number' ? initialValue.toString() : initialValue);
-  };
+  }, [initialValue]);
 
   return {
     value,
@@ -106,14 +106,14 @@ export const useDateInput = (initialDate?: Date): UseDateInputReturn => {
     initialDate ? toISODate(initialDate) : getCurrentISODate()
   );
 
-  const setDateValue = (date: Date) => {
+  const setDateValue = useCallback((date: Date) => {
     setIsoDate(toISODate(date));
-  };
+  }, []);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     const defaultDate = initialDate || new Date();
     setIsoDate(toISODate(defaultDate));
-  };
+  }, [initialDate]);
 
   const dateValue = new Date(isoDate);
 
