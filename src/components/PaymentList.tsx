@@ -56,7 +56,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
     setDeletingPaymentId(paymentId);
   };
 
-  const confirmDelete = async () => {
+  const confirmDelete = React.useCallback(async () => {
     if (deletingPaymentId) {
       try {
         await paymentRepository.delete(deletingPaymentId);
@@ -65,7 +65,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
         console.error('Failed to delete payment:', error);
       }
     }
-  };
+  }, [deletingPaymentId]);
 
   // Handle keyboard shortcuts for delete confirmation modal
   React.useEffect(() => {
