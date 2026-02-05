@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { createPortal } from 'react-dom';
-import { Box } from '@mui/material';
+import Box from '@mui/material/Box';
 import { Button } from './Button';
 import { Card, CardContent, CardHeader, CardTitle } from './Card';
 

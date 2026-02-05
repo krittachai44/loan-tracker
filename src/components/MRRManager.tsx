@@ -1,17 +1,20 @@
 import * as React from 'react';
-import { Box, Typography } from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
+import { referenceRateRepository } from '../services';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { useNumericInput } from '../hooks';
+import { getCurrentISODate } from '../utils/date';
 
 export const MRRManager: React.FC = () => {
   const rates = useLiveQuery(() => db.referenceRates.orderBy('date').reverse().toArray());
-  const isoNow = new Date().toISOString().split('T')[0];
+  const isoNow = getCurrentISODate();
   const [isoDate, setIsoDate] = React.useState(isoNow);
   const [rate, setRate] = React.useState('');
   const { handleKeyDown, handlePaste } = useNumericInput({ allowDecimal: true });
@@ -20,18 +23,18 @@ export const MRRManager: React.FC = () => {
     e.preventDefault();
     if (!rate || !isoDate) return;
 
-    await db.referenceRates.add({
+    await referenceRateRepository.create({
       date: new Date(isoDate),
       rate: parseFloat(rate)
     });
 
-    const newIsoDate = new Date().toISOString().split('T')[0];
+    const newIsoDate = getCurrentISODate();
     setIsoDate(newIsoDate);
     setRate('');
   };
 
   const handleDelete = async (id: number) => {
-    await db.referenceRates.delete(id);
+    await referenceRateRepository.delete(id);
   };
 
   return (

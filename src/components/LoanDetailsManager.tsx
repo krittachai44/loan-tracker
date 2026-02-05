@@ -1,50 +1,73 @@
 import * as React from 'react';
-import { Box, Typography } from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
-import { db } from '../db';
+import { loanRepository } from '../services';
 import { Button } from './ui/Button';
 import { Input, AmountInput } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { useNumberInput } from '../hooks';
+import { useNumberInput, useSnackbar, useEditableEntity } from '../hooks';
+import { toISODate } from '../utils/date';
 import type { Loan } from '../types';
 
 interface LoanDetailsManagerProps {
   loan: Loan;
 }
 
+interface EditState {
+  name: string;
+  principal: string;
+  principalIsValid: boolean;
+  isoStartDate: string;
+}
+
 export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) => {
-  const [isEditing, setIsEditing] = React.useState(false);
-
-  // Local state
-  const [name, setName] = React.useState(loan.name);
+  const { showWarning, showError } = useSnackbar();
   const principal = useNumberInput({ initialValue: loan.principal, min: 0 });
-  const [isoStartDate, setIsoStartDate] = React.useState(loan.startDate.toISOString().split('T')[0]);
 
-  // Reset when loan changes or edit mode toggles
+  const { isEditing, editState, startEdit, cancelEdit, saveEdit, updateField } = 
+    useEditableEntity<Loan, EditState>({
+      entity: loan,
+      initializeEditState: (loan) => ({
+        name: loan.name,
+        principal: loan.principal.toString(),
+        principalIsValid: true,
+        isoStartDate: toISODate(loan.startDate)
+      }),
+      validate: (state) => {
+        if (!state.name || !state.isoStartDate) {
+          return 'Please fill in all fields.';
+        }
+        if (!state.principalIsValid) {
+          return 'Please enter a valid principal amount.';
+        }
+        return null;
+      },
+      onSave: async (state) => {
+        if (loan.id) {
+          await loanRepository.update(loan.id, {
+            name: state.name,
+            principal: principal.numericValue,
+            startDate: new Date(state.isoStartDate)
+          });
+        }
+      },
+      onSaveError: (error) => {
+        showWarning(error.message);
+        if (error.message !== 'Please fill in all fields.' && error.message !== 'Please enter a valid principal amount.') {
+          showError('Failed to update loan details. Please try again.');
+          console.error('Error updating loan:', error);
+        }
+      }
+    });
+
+  // Sync principal input state with editState
   React.useEffect(() => {
-    if (!isEditing) {
-      setName(loan.name);
-      principal.setNumericValue(loan.principal);
-      setIsoStartDate(loan.startDate.toISOString().split('T')[0]);
+    if (isEditing) {
+      updateField('principalIsValid', principal.isValid);
     }
-  }, [loan, isEditing, principal]);
-
-  const handleSave = async () => {
-    if (!name || !principal.isValid || !isoStartDate) {
-      alert("Please fill in all fields.");
-      return;
-    }
-
-    if (loan.id) {
-      await db.loans.update(loan.id, {
-        name,
-        principal: principal.numericValue,
-        startDate: new Date(isoStartDate)
-      });
-      setIsEditing(false);
-    }
-  };
+  }, [principal.isValid, isEditing, updateField]);
 
   if (!isEditing) {
     return (
@@ -52,7 +75,7 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
         <CardHeader>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <CardTitle>Loan Details</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Button variant="outline" size="sm" onClick={startEdit}>
               Edit
             </Button>
           </Box>
@@ -77,6 +100,8 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
     );
   }
 
+  const state = editState;
+
   return (
     <Card>
       <CardHeader>
@@ -86,8 +111,8 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <Box>
             <Input
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              value={state.name}
+              onChange={(e) => updateField('name', e.target.value)}
               label="Loan Name"
               size="small"
             />
@@ -103,15 +128,15 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
           </Box>
           <Box>
             <DatePicker
-              value={isoStartDate}
-              onChange={setIsoStartDate}
+              value={state.isoStartDate}
+              onChange={(val) => updateField('isoStartDate', val)}
             />
           </Box>
           <Box sx={{ display: 'flex', gap: 2, pt: 1 }}>
-            <Button variant="ghost" sx={{ flex: 1 }} onClick={() => setIsEditing(false)}>
+            <Button variant="ghost" sx={{ flex: 1 }} onClick={cancelEdit}>
               Cancel
             </Button>
-            <Button sx={{ flex: 1 }} onClick={handleSave}>
+            <Button sx={{ flex: 1 }} onClick={saveEdit}>
               Save
             </Button>
           </Box>

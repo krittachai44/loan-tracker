@@ -6,6 +6,7 @@ import './index.css';
 import { modernTheme, darkTheme } from './modernTheme';
 import { ThemeContextProvider, useThemeMode } from './ThemeContext';
 import { ErrorBoundary } from './components/ErrorBoundary';
+import { SnackbarProvider } from './components/SnackbarProvider';
 import App from './App.tsx';
 
 const ThemedApp = () => {
@@ -15,9 +16,11 @@ const ThemedApp = () => {
   return (
     <ThemeProvider theme={theme}>
       <CssBaseline />
-      <ErrorBoundary>
-        <App />
-      </ErrorBoundary>
+      <SnackbarProvider>
+        <ErrorBoundary>
+          <App />
+        </ErrorBoundary>
+      </SnackbarProvider>
     </ThemeProvider>
   );
 };

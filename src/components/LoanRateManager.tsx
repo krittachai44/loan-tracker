@@ -1,85 +1,108 @@
 import * as React from 'react';
-import { Select, MenuItem, FormControl, InputLabel, Box, Typography } from '@mui/material';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import InputLabel from '@mui/material/InputLabel';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
 import { format } from 'date-fns';
-import { db } from '../db';
+import { loanRepository } from '../services';
 import { Button } from './ui/Button';
 import { Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { formatNumberInput, parseFormattedNumber } from '../utils';
-import { useNumericInput } from '../hooks';
+import { useNumericInput, useSnackbar, useEditableEntity } from '../hooks';
+import { toISODate } from '../utils/date';
 import type { Loan } from '../types';
 
 interface LoanRateManagerProps {
   loan: Loan;
 }
 
+interface RateEditState {
+  value: string;
+  isoStartDate: string;
+  startDate: Date;
+  type: 'fixed' | 'float';
+}
+
+interface EditState {
+  rates: RateEditState[];
+}
+
 export const LoanRateManager: React.FC<LoanRateManagerProps> = ({ loan }) => {
-  // Local state for editing rates
-  // We map rates to a state friendly format
-  const [isEditing, setIsEditing] = React.useState(false);
   const { handleKeyDown, handlePaste } = useNumericInput({ allowNegative: true, allowDecimal: true });
+  const { showWarning, showError } = useSnackbar();
 
-  // Deep copy rates to avoid mutating props directly during edit
-  const [rates, setRates] = React.useState(
-    loan.rates.map(r => ({
-      ...r,
-      isoStartDate: r.startDate.toISOString().split('T')[0],
-      value: r.value.toString()
-    }))
-  );
-
-  // Reset when loan changes or edit mode toggles
-  React.useEffect(() => {
-    if (!isEditing) {
-      setRates(
-        loan.rates.map(r => ({
+  const { isEditing, editState, startEdit, cancelEdit, saveEdit, replaceEditState } = 
+    useEditableEntity<Loan, EditState>({
+      entity: loan,
+      initializeEditState: (loan) => ({
+        rates: loan.rates.map(r => ({
           ...r,
-          isoStartDate: r.startDate.toISOString().split('T')[0],
+          isoStartDate: toISODate(r.startDate),
           value: r.value.toString()
         }))
-      );
-    }
-  }, [loan, isEditing]);
+      }),
+      validate: (state) => {
+        if (state.rates.some(r => !r.value || !r.isoStartDate)) {
+          return 'Please fill in all fields.';
+        }
+        return null;
+      },
+      onSave: async (state) => {
+        const parsedRates = state.rates.map(r => ({
+          value: parseFloat(parseFormattedNumber(r.value)),
+          startDate: new Date(r.isoStartDate),
+          type: r.type
+        }));
+
+        if (loan.id) {
+          await loanRepository.update(loan.id, { rates: parsedRates });
+        }
+      },
+      onSaveError: (error) => {
+        if (error.message === 'Please fill in all fields.') {
+          showWarning(error.message);
+        } else {
+          showError('Failed to update rates. Please try again.');
+          console.error('Error updating rates:', error);
+        }
+      }
+    });
+
+  const state = editState;
 
   const addRate = () => {
-    setRates([...rates, { value: '', isoStartDate: '', startDate: new Date(), type: 'fixed' as const }]);
+    replaceEditState({
+      rates: [...state.rates, { 
+        value: '', 
+        isoStartDate: '', 
+        startDate: new Date(), 
+        type: 'fixed' as const 
+      }]
+    });
   };
 
   const removeRate = (index: number) => {
-    if (rates.length <= 1) {
-      alert("A loan must have at least one interest rate segment.");
+    if (state.rates.length <= 1) {
+      showWarning('A loan must have at least one interest rate segment.');
       return;
     }
-    setRates(rates.filter((_, i) => i !== index));
+    replaceEditState({
+      rates: state.rates.filter((_, i) => i !== index)
+    });
   };
 
-  const updateRate = (index: number, field: string, val: string) => {
-    const newRates = [...rates];
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    (newRates[index] as any)[field] = val;
-    setRates(newRates);
-  };
-
-  const handleSave = async () => {
-    // Validate
-    if (rates.some(r => !r.value || !r.isoStartDate)) {
-      alert("Please fill in all fields.");
-      return;
+  const updateRate = (index: number, field: keyof RateEditState, val: string | 'fixed' | 'float') => {
+    const newRates = [...state.rates];
+    if (field === 'type') {
+      newRates[index][field] = val as 'fixed' | 'float';
+    } else {
+      newRates[index][field as 'value' | 'isoStartDate'] = val as string;
     }
-
-    // Parse
-    const parsedRates = rates.map(r => ({
-      value: parseFloat(parseFormattedNumber(r.value)),
-      startDate: new Date(r.isoStartDate),
-      type: r.type
-    }));
-
-    // Update DB
-    if (loan.id) {
-      await db.loans.update(loan.id, { rates: parsedRates });
-      setIsEditing(false);
-    }
+    replaceEditState({ rates: newRates });
   };
 
   if (!isEditing) {
@@ -88,7 +111,7 @@ export const LoanRateManager: React.FC<LoanRateManagerProps> = ({ loan }) => {
         <CardHeader>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <CardTitle>Interest Rates</CardTitle>
-            <Button variant="outline" size="sm" onClick={() => setIsEditing(true)}>
+            <Button variant="outline" size="sm" onClick={startEdit}>
               Edit
             </Button>
           </Box>
@@ -116,14 +139,14 @@ export const LoanRateManager: React.FC<LoanRateManagerProps> = ({ loan }) => {
       </CardHeader>
       <CardContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {rates.map((r, index) => (
+          {state.rates.map((r, index) => (
             <Box key={index} sx={{ display: 'flex', flexDirection: 'column', gap: 1, p: 2, border: 1, borderColor: 'divider', borderRadius: 1 }}>
               <Box sx={{ display: 'flex', gap: 2 }}>
                 <FormControl sx={{ width: '33%' }} size="small">
                   <InputLabel>Type</InputLabel>
                   <Select
                     value={r.type}
-                    onChange={(e) => updateRate(index, 'type', e.target.value)}
+                    onChange={(e) => updateRate(index, 'type', e.target.value as 'fixed' | 'float')}
                     label="Type"
                   >
                     <MenuItem value="fixed">Fixed</MenuItem>
@@ -168,10 +191,10 @@ export const LoanRateManager: React.FC<LoanRateManagerProps> = ({ loan }) => {
             + Add Rate Change
           </Button>
           <Box sx={{ display: 'flex', gap: 2, mt: 2, pt: 2, borderTop: 1, borderColor: 'divider' }}>
-            <Button type="button" variant="ghost" sx={{ flex: 1 }} onClick={() => setIsEditing(false)}>
+            <Button type="button" variant="ghost" sx={{ flex: 1 }} onClick={cancelEdit}>
               Cancel
             </Button>
-            <Button type="button" sx={{ flex: 1 }} onClick={handleSave}>
+            <Button type="button" sx={{ flex: 1 }} onClick={saveEdit}>
               Save Changes
             </Button>
           </Box>

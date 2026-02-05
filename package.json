@@ -11,6 +11,7 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "test:coverage": "vitest --coverage",
+    "test:bench": "vitest bench",
     "deploy": "npm run build && gh-pages -d dist",
     "prepare": "husky"
   },

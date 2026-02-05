@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Typography, Box } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import { Input } from './Input';
 import type { TextFieldProps } from '@mui/material/TextField';
 

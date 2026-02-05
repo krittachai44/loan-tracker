@@ -1,11 +1,17 @@
 import * as React from 'react';
-import { Select, MenuItem, FormControl, Box, Typography, Grid } from '@mui/material';
-import { db } from '../db';
+import Select from '@mui/material/Select';
+import MenuItem from '@mui/material/MenuItem';
+import FormControl from '@mui/material/FormControl';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Grid from '@mui/material/Grid';
+import { loanRepository } from '../services';
 import { Button } from './ui/Button';
 import { Input, AmountInput } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
-import { useNumberInput } from '../hooks';
+import { useNumberInput, useSnackbar } from '../hooks';
+import { getCurrentISODate } from '../utils/date';
 
 interface LoanSetupProps {
   onComplete: () => void;
@@ -49,10 +55,11 @@ const RateInput: React.FC<{
 };
 
 export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
-  const isoNow = new Date().toISOString().split('T')[0];
+  const isoNow = getCurrentISODate();
   const [name, setName] = React.useState('My Loan');
   const principal = useNumberInput({ min: 0 });
   const [isoStartDate, setIsoStartDate] = React.useState(isoNow);
+  const { showError } = useSnackbar();
 
   // Initialize with one rate segment
   const [rates, setRates] = React.useState<RateSegmentState[]>([{
@@ -78,24 +85,32 @@ export const LoanSetup: React.FC<LoanSetupProps> = ({ onComplete }) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!principal.numericValue || rates.some(r => !r.value || !r.isoStartDate)) return;
+    if (!principal.numericValue || rates.some(r => !r.value || !r.isoStartDate)) {
+      showError('Please fill in all fields.');
+      return;
+    }
 
-    const parsedRates = rates
-      .filter((r): r is RateSegmentState & { value: number } => typeof r.value === 'number')
-      .map(r => ({
-        value: r.value,
-        startDate: new Date(r.isoStartDate),
-        type: r.type
-      }));
+    try {
+      const parsedRates = rates
+        .filter((r): r is RateSegmentState & { value: number } => typeof r.value === 'number')
+        .map(r => ({
+          value: r.value,
+          startDate: new Date(r.isoStartDate),
+          type: r.type
+        }));
 
-    await db.loans.add({
-      name,
-      principal: principal.numericValue,
-      rates: parsedRates,
-      startDate: new Date(isoStartDate)
-    });
+      await loanRepository.create({
+        name,
+        principal: principal.numericValue,
+        rates: parsedRates,
+        startDate: new Date(isoStartDate)
+      });
 
-    onComplete();
+      onComplete();
+    } catch (err) {
+      showError('Failed to create loan. Please try again.');
+      console.error('Error creating loan:', err);
+    }
   };
 
   return (

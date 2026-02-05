@@ -14,6 +14,9 @@ db.version(1).stores({
 });
 
 export const resetDatabase = async () => {
-    await db.delete();
-    await db.open();
+    await db.transaction('rw', db.loans, db.payments, db.referenceRates, async () => {
+        await db.loans.clear();
+        await db.payments.clear();
+        await db.referenceRates.clear();
+    });
 };

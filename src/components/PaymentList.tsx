@@ -1,7 +1,15 @@
 import * as React from 'react';
-import { Box, Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Typography } from '@mui/material';
+import Box from '@mui/material/Box';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import Typography from '@mui/material/Typography';
 import type { PaymentLog } from '../utils';
 import type { Payment } from '../types';
+import { paymentRepository } from '../services';
 import { db } from '../db';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/Card';
 import { Modal } from './ui/Modal';
@@ -9,6 +17,7 @@ import { Button } from './ui/Button';
 import { PaymentForm } from './PaymentForm';
 import { YearFilter } from './YearFilter';
 import { PaymentTableRow } from './PaymentTableRow';
+import { TABLE_CONFIG } from '../constants';
 
 interface PaymentListProps {
   logs: PaymentLog[];
@@ -21,11 +30,11 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
 
   const availableYears = (() => {
     const years = new Set(logs.map(log => log.date.getFullYear()));
-    return Array.from(years).sort((a, b) => b - a);
+    return Array.from(years).toSorted((a, b) => b - a);
   })();
 
   const history = (() => {
-    let sorted = [...logs].reverse();
+    let sorted = logs.toReversed();
     if (selectedYear !== 'ALL') {
       sorted = sorted.filter(log => log.date.getFullYear() === selectedYear);
     }
@@ -33,9 +42,13 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
   })();
 
   const handleEdit = async (paymentId: number) => {
-    const payment = await db.payments.get(paymentId);
-    if (payment) {
-      setEditingPayment(payment);
+    try {
+      const payment = await db.payments.get(paymentId);
+      if (payment) {
+        setEditingPayment(payment);
+      }
+    } catch (error) {
+      console.error('Failed to load payment:', error);
     }
   };
 
@@ -45,8 +58,12 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
 
   const confirmDelete = async () => {
     if (deletingPaymentId) {
-      await db.payments.delete(deletingPaymentId);
-      setDeletingPaymentId(null);
+      try {
+        await paymentRepository.delete(deletingPaymentId);
+        setDeletingPaymentId(null);
+      } catch (error) {
+        console.error('Failed to delete payment:', error);
+      }
     }
   };
 
@@ -78,7 +95,7 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
           </Box>
         </CardHeader>
         <CardContent>
-          <TableContainer sx={{ maxHeight: 'calc(20 * 53px)', overflowY: 'auto' }}>
+          <TableContainer sx={{ maxHeight: `calc(${TABLE_CONFIG.MAX_VISIBLE_ROWS} * ${TABLE_CONFIG.ROW_HEIGHT_PX}px)`, overflowY: 'auto' }}>
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>

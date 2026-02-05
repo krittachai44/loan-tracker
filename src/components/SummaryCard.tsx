@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Typography, Box, Paper } from '@mui/material';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
 import TrendingUpOutlined from '@mui/icons-material/TrendingUpOutlined';
 import TrendingDownOutlined from '@mui/icons-material/TrendingDownOutlined';
 import AttachMoneyOutlined from '@mui/icons-material/AttachMoneyOutlined';

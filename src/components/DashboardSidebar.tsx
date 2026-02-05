@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Stack } from '@mui/material';
+import Stack from '@mui/material/Stack';
 import { LoanDetailsManager } from './LoanDetailsManager';
 import { LoanRateManager } from './LoanRateManager';
 import { PaymentForm } from './PaymentForm';

@@ -1,4 +1,5 @@
-import { Grid2, useTheme } from '@mui/material';
+import Grid2 from '@mui/material/Grid2';
+import useTheme from '@mui/material/styles/useTheme';
 import { SummaryCard } from './SummaryCard';
 import type { Loan, Payment, ReferenceRate } from '../types';
 import type { PaymentLog } from '../utils';
@@ -23,7 +24,7 @@ export const LoanSummary = ({ loan, series, totalPayments, payments, referenceRa
     
     // Find the current active rate based on today's date
     const today = new Date();
-    const sortedRates = [...loan.rates].sort((a, b) => a.startDate.getTime() - b.startDate.getTime());
+    const sortedRates = loan.rates.toSorted((a, b) => a.startDate.getTime() - b.startDate.getTime());
     const currentRate = sortedRates.reduce((prev, curr) => {
       return curr.startDate <= today ? curr : prev;
     }, sortedRates[0]);
