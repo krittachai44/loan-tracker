@@ -19,9 +19,46 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
 
   const exportToCSV = async () => {
     try {
+      // Validate loan ID
+      if (!loan.id) {
+        throw new Error('Loan ID is missing');
+      }
+
+      // Helper to safely handle dates
+      const isValidDate = (d: Date | string | number | null | undefined): boolean => {
+        if (!d) return false;
+        const date = d instanceof Date ? d : new Date(d);
+        return !isNaN(date.getTime());
+      };
+      
+      const ensureDate = (d: Date | string | number): Date => {
+        if (!d) {
+          throw new Error(`Invalid date value: ${d}`);
+        }
+        const date = d instanceof Date ? d : new Date(d);
+        if (isNaN(date.getTime())) {
+          throw new Error(`Invalid date value: ${d}`);
+        }
+        return date;
+      };
+      const formatDate = (d: Date | string | number): string => ensureDate(d).toISOString().split('T')[0];
+      const getTime = (d: Date | string | number): number => ensureDate(d).getTime();
+
       // Get all data
-      const payments = await db.payments.where('loanId').equals(loan.id!).toArray();
+      const payments = await db.payments.where('loanId').equals(loan.id).toArray();
       const referenceRates = await db.referenceRates.toArray();
+
+      // Filter out invalid data
+      const validPayments = payments.filter(p => isValidDate(p.date));
+      const validReferenceRates = referenceRates.filter(r => isValidDate(r.date));
+      
+      // Log warnings for invalid data
+      if (payments.length !== validPayments.length) {
+        console.warn(`Skipped ${payments.length - validPayments.length} payment(s) with invalid dates`);
+      }
+      if (referenceRates.length !== validReferenceRates.length) {
+        console.warn(`Skipped ${referenceRates.length - validReferenceRates.length} reference rate(s) with invalid dates`);
+      }
 
       // Create CSV content
       const csvParts: string[] = [];
@@ -31,34 +68,36 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
       csvParts.push('Field,Value');
       csvParts.push(`Name,${escapeCSV(loan.name)}`);
       csvParts.push(`Principal,${loan.principal}`);
-      csvParts.push(`Start Date,${loan.startDate.toISOString().split('T')[0]}`);
+      csvParts.push(`Start Date,${formatDate(loan.startDate)}`);
       csvParts.push('');
 
       // Section 2: Rate Segments
       csvParts.push('# RATE SEGMENTS');
       csvParts.push('Start Date,Type,Value');
-      loan.rates.forEach(rate => {
-        csvParts.push(`${rate.startDate.toISOString().split('T')[0]},${rate.type},${rate.value}`);
-      });
+      if (loan.rates && Array.isArray(loan.rates)) {
+        loan.rates.forEach(rate => {
+          csvParts.push(`${formatDate(rate.startDate)},${rate.type},${rate.value}`);
+        });
+      }
       csvParts.push('');
 
       // Section 3: Reference Rates (MRR)
       csvParts.push('# REFERENCE RATES');
       csvParts.push('Date,Rate');
-      referenceRates
-        .sort((a, b) => a.date.getTime() - b.date.getTime())
+      validReferenceRates
+        .sort((a, b) => getTime(a.date) - getTime(b.date))
         .forEach(rate => {
-          csvParts.push(`${rate.date.toISOString().split('T')[0]},${rate.rate}`);
+          csvParts.push(`${formatDate(rate.date)},${rate.rate}`);
         });
       csvParts.push('');
 
       // Section 4: Payment History
       csvParts.push('# PAYMENT HISTORY');
       csvParts.push('Date,Amount,Note');
-      payments
-        .sort((a, b) => a.date.getTime() - b.date.getTime())
+      validPayments
+        .sort((a, b) => getTime(a.date) - getTime(b.date))
         .forEach(payment => {
-          csvParts.push(`${payment.date.toISOString().split('T')[0]},${payment.amount},${escapeCSV(payment.note || '')}`);
+          csvParts.push(`${formatDate(payment.date)},${payment.amount},${escapeCSV(payment.note || '')}`);
         });
 
       const csvContent = csvParts.join('\n');
@@ -74,7 +113,8 @@ export const DataExportImport: React.FC<Props> = ({ loan }) => {
       link.click();
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
-    } catch {
+    } catch (error) {
+      console.error('Export failed:', error);
       alert('Failed to export data. Please try again.');
     }
   };

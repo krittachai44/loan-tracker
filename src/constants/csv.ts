@@ -15,10 +15,10 @@ export const CSV_SECTION_HEADERS = {
 } as const;
 
 export const CSV_FIELD_HEADERS = {
-  LOAN: 'field,',
-  RATES: 'start date,',
+  LOAN: 'field,value',
+  RATES: 'start date,type,value',
   REFERENCE: 'date,rate',
-  PAYMENTS: 'date,amount',
+  PAYMENTS: 'date,amount,note',
 } as const;
 
 export const LOAN_FIELDS = {
@@ -32,7 +32,7 @@ export const ACCEPTED_FILE_TYPES = '.csv,.xlsx,.xls';
 
 export const SAMPLE_CSV_DATA = `# LOAN DETAILS
 Field,Value
-Name,My Home Loan
+Name,"My Home Loan"
 Principal,500000
 Start Date,2024-01-01
 
