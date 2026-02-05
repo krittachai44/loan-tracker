@@ -1,16 +1,14 @@
 import * as React from 'react';
-import {
-  Box,
-  Typography,
-  AppBar,
-  Toolbar,
-  IconButton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import AppBar from '@mui/material/AppBar';
+import Toolbar from '@mui/material/Toolbar';
+import IconButton from '@mui/material/IconButton';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
 import RefreshOutlined from '@mui/icons-material/RefreshOutlined';
 import AccountBalanceOutlined from '@mui/icons-material/AccountBalanceOutlined';
 import WarningAmberOutlined from '@mui/icons-material/WarningAmberOutlined';
@@ -39,7 +37,6 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
   const handleResetConfirm = async () => {
     setConfirmOpen(false);
     await resetDatabase();
-    window.location.reload();
   };
 
   const handleResetCancel = () => {

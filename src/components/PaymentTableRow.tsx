@@ -1,5 +1,8 @@
 import * as React from 'react';
-import { TableCell, TableRow, Typography, Box } from '@mui/material';
+import TableCell from '@mui/material/TableCell';
+import TableRow from '@mui/material/TableRow';
+import Typography from '@mui/material/Typography';
+import Box from '@mui/material/Box';
 import { format } from 'date-fns';
 import { Button } from './ui/Button';
 import type { PaymentLog } from '../utils';

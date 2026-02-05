@@ -17,6 +17,7 @@ const DatePicker = ({ value, onChange, required, disabled }: DatePickerProps) =>
     <LocalizationProvider dateAdapter={AdapterDateFns}>
       <MuiDatePicker
         value={dateValue}
+        format="dd/MM/yyyy"
         onChange={(newDate) => {
           if (newDate) {
             const isoDate = format(newDate, 'yyyy-MM-dd');

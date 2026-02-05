@@ -1,33 +1,3 @@
-export const CSV_SECTIONS = {
-  LOAN: 'LOAN',
-  RATES: 'RATES',
-  REFERENCE: 'REFERENCE',
-  PAYMENTS: 'PAYMENTS',
-} as const;
-
-export type CSVSection = typeof CSV_SECTIONS[keyof typeof CSV_SECTIONS];
-
-export const CSV_SECTION_HEADERS = {
-  LOAN: '# LOAN DETAILS',
-  RATES: '# RATE SEGMENTS',
-  REFERENCE: '# REFERENCE RATES',
-  PAYMENTS: '# PAYMENT HISTORY',
-} as const;
-
-export const CSV_FIELD_HEADERS = {
-  LOAN: 'field,value',
-  RATES: 'start date,type,value',
-  REFERENCE: 'date,rate',
-  PAYMENTS: 'date,amount,note',
-} as const;
-
-export const LOAN_FIELDS = {
-  NAME: 'name',
-  PRINCIPAL: 'principal',
-  START_DATE: 'startdate',
-  DATE: 'date',
-} as const;
-
 export const ACCEPTED_FILE_TYPES = '.csv,.xlsx,.xls';
 
 export const SAMPLE_CSV_DATA = `# LOAN DETAILS

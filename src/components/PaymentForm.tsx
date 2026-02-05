@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Box, Typography, Alert } from '@mui/material';
-import { db } from '../db';
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+import Alert from '@mui/material/Alert';
+import { paymentRepository } from '../services';
 import { Button } from './ui/Button';
 import { AmountInput, Input } from './ui/Input';
 import { DatePicker } from './ui/DatePicker';
@@ -41,19 +43,25 @@ export const PaymentForm = ({ loanId, initialPayment, onComplete }: PaymentFormP
 
     if (!amount.isValid || !amount.numericValue || !date.isoDate) return;
 
-    const payload = {
-      loanId,
-      amount: amount.numericValue,
-      date: date.dateValue,
-      note
-    };
+    try {
+      const payload = {
+        loanId,
+        amount: amount.numericValue,
+        date: date.dateValue,
+        note
+      };
 
-    if (initialPayment?.id) {
-      await db.payments.update(initialPayment.id, payload);
-    } else {
-      await db.payments.add(payload);
-      amount.reset();
-      setNote('');
+      if (initialPayment?.id) {
+        await paymentRepository.update(initialPayment.id, payload);
+      } else {
+        await paymentRepository.create(payload);
+        amount.reset();
+        setNote('');
+      }
+    } catch (error) {
+      console.error('Failed to save payment:', error);
+      // Error will be handled by ErrorBoundary
+      throw error;
     }
 
     onComplete?.();

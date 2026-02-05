@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { toISODate, getCurrentISODate } from '../utils/date';
 
 interface UseNumberInputOptions {
   min?: number;
@@ -102,16 +103,16 @@ interface UseDateInputReturn {
  */
 export const useDateInput = (initialDate?: Date): UseDateInputReturn => {
   const [isoDate, setIsoDate] = useState(() =>
-    initialDate?.toISOString().split('T')[0] || new Date().toISOString().split('T')[0]
+    initialDate ? toISODate(initialDate) : getCurrentISODate()
   );
 
   const setDateValue = (date: Date) => {
-    setIsoDate(date.toISOString().split('T')[0]);
+    setIsoDate(toISODate(date));
   };
 
   const reset = () => {
     const defaultDate = initialDate || new Date();
-    setIsoDate(defaultDate.toISOString().split('T')[0]);
+    setIsoDate(toISODate(defaultDate));
   };
 
   const dateValue = new Date(isoDate);

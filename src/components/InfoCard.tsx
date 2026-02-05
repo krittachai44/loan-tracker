@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Typography } from '@mui/material';
+import Typography from '@mui/material/Typography';
 import { Card, CardContent } from './ui/Card';
 
 export const InfoCard: React.FC = () => {

@@ -1,5 +1,9 @@
 import * as React from 'react';
-import { Box, Paper, Typography, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import Box from '@mui/material/Box';
+import Paper from '@mui/material/Paper';
+import Typography from '@mui/material/Typography';
+import ToggleButton from '@mui/material/ToggleButton';
+import ToggleButtonGroup from '@mui/material/ToggleButtonGroup';
 import {
   AreaChart,
   Area,
@@ -13,6 +17,7 @@ import {
 import { format, subMonths } from 'date-fns';
 import TrendingDownOutlined from '@mui/icons-material/TrendingDownOutlined';
 import type { PaymentLog } from '../utils';
+import { GRAPH_MARGINS } from '../constants';
 
 interface LoanGraphProps {
   data: PaymentLog[];
@@ -131,7 +136,6 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
             }
           }}
         >
-          <ToggleButton value="1m">1M</ToggleButton>
           <ToggleButton value="3m">3M</ToggleButton>
           <ToggleButton value="6m">6M</ToggleButton>
           <ToggleButton value="1y">1Y</ToggleButton>
@@ -145,10 +149,10 @@ export const LoanGraph: React.FC<LoanGraphProps> = ({ data }) => {
           <AreaChart
             data={chartData}
             margin={{
-              top: 10,
-              right: 20,
-              left: 20,
-              bottom: 0,
+              top: GRAPH_MARGINS.TOP,
+              right: GRAPH_MARGINS.RIGHT,
+              left: GRAPH_MARGINS.LEFT,
+              bottom: GRAPH_MARGINS.BOTTOM,
             }}
           >
             <defs>

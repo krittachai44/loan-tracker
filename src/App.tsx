@@ -1,4 +1,9 @@
-import { Box, Container, Grid2, Stack, Fade, CircularProgress } from '@mui/material';
+import Box from '@mui/material/Box';
+import Container from '@mui/material/Container';
+import Grid2 from '@mui/material/Grid2';
+import Stack from '@mui/material/Stack';
+import Fade from '@mui/material/Fade';
+import CircularProgress from '@mui/material/CircularProgress';
 import { SetupLayout } from './components/SetupLayout';
 import { AppHeader } from './components/AppHeader';
 import { LoanSummary } from './components/LoanSummary';

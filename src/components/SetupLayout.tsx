@@ -1,19 +1,15 @@
 import * as React from 'react';
-import {
-  Box,
-  IconButton,
-  Tooltip,
-  Snackbar,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  Button,
-  Paper,
-  Divider,
-  Typography
-} from '@mui/material';
+import Box from '@mui/material/Box';
+import IconButton from '@mui/material/IconButton';
+import Tooltip from '@mui/material/Tooltip';
+import Dialog from '@mui/material/Dialog';
+import DialogTitle from '@mui/material/DialogTitle';
+import DialogContent from '@mui/material/DialogContent';
+import DialogActions from '@mui/material/DialogActions';
+import Button from '@mui/material/Button';
+import Paper from '@mui/material/Paper';
+import Divider from '@mui/material/Divider';
+import Typography from '@mui/material/Typography';
 import FileUpload from '@mui/icons-material/FileUpload';
 import HelpOutline from '@mui/icons-material/HelpOutline';
 import Download from '@mui/icons-material/Download';
@@ -21,59 +17,28 @@ import Info from '@mui/icons-material/Info';
 import { AppHeader } from './AppHeader';
 import { LoanSetup } from './LoanSetup';
 import { MRRManager } from './MRRManager';
-import { useCSVImport } from '../hooks/useCSVImport';
+import { useLoanImport, useSnackbar } from '../hooks';
 import { ACCEPTED_FILE_TYPES, SAMPLE_CSV_DATA } from '../constants/csv';
 
 export const SetupLayout: React.FC = () => {
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const [sampleDialogOpen, setSampleDialogOpen] = React.useState(false);
-  const [snackbar, setSnackbar] = React.useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
-
-  const { importFromFile, isImporting } = useCSVImport();
+  const { showSuccess } = useSnackbar();
+  const { importFromFile, isImporting } = useLoanImport();
 
   const handleUploadClick = () => {
     fileInputRef.current?.click();
   };
 
-  const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
-    try {
-      const result = await importFromFile(file);
-
-      if (result.success) {
-        setSnackbar({
-          open: true,
-          message: 'Data imported successfully!',
-          severity: 'success'
-        });
-
-        // No need for window.location.reload()
-        // Dexie's useLiveQuery will automatically detect the changes
-        // and re-render the components with the new data
-      } else {
-        setSnackbar({
-          open: true,
-          message: result.error || 'Failed to import data',
-          severity: 'error'
-        });
-      }
-    } catch (error) {
-      setSnackbar({
-        open: true,
-        message: error instanceof Error ? error.message : 'Failed to import data',
-        severity: 'error'
-      });
-    } finally {
-      // Reset file input so the same file can be selected again
-      if (fileInputRef.current) {
-        fileInputRef.current.value = '';
-      }
+    importFromFile(file);
+    
+    // Reset file input so the same file can be selected again
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
     }
   };
 
@@ -81,18 +46,14 @@ export const SetupLayout: React.FC = () => {
     const blob = new Blob([SAMPLE_CSV_DATA], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     const url = URL.createObjectURL(blob);
-    link.href = url;
-    link.download = 'loan-tracker-sample.csv';
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'loan-tracker-sample.csv');
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
 
-    setSnackbar({
-      open: true,
-      message: 'Sample CSV downloaded!',
-      severity: 'success'
-    });
+    showSuccess('Sample CSV downloaded!');
   };
 
   return (
@@ -258,23 +219,6 @@ export const SetupLayout: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
-
-      {/* Snackbar for notifications */}
-      <Snackbar
-        open={snackbar.open}
-        autoHideDuration={6000}
-        onClose={() => setSnackbar({ ...snackbar, open: false })}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
-      >
-        <Alert
-          onClose={() => setSnackbar({ ...snackbar, open: false })}
-          severity={snackbar.severity}
-          variant="filled"
-          sx={{ width: '100%' }}
-        >
-          {snackbar.message}
-        </Alert>
-      </Snackbar>
     </Box>
   );
 };
