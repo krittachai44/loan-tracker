@@ -175,7 +175,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({ loanName, loan, hideAction
           >
             <WarningAmberOutlined />
           </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>
+          <Typography variant="h6" component="div" sx={{ fontWeight: 700 }}>
             Reset All Data?
           </Typography>
         </DialogTitle>
