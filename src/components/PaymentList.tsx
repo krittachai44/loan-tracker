@@ -28,18 +28,28 @@ export const PaymentList: React.FC<PaymentListProps> = ({ logs }) => {
   const [deletingPaymentId, setDeletingPaymentId] = React.useState<number | null>(null);
   const [selectedYear, setSelectedYear] = React.useState<number | 'ALL'>('ALL');
 
-  const availableYears = (() => {
-    const years = new Set(logs.map(log => log.date.getFullYear()));
-    return Array.from(years).toSorted((a, b) => b - a);
-  })();
-
-  const history = (() => {
-    let sorted = logs.toReversed();
-    if (selectedYear !== 'ALL') {
-      sorted = sorted.filter(log => log.date.getFullYear() === selectedYear);
+  // Combine iterations: reverse once, filter while collecting years
+  const { availableYears, history } = React.useMemo(() => {
+    const yearsSet = new Set<number>();
+    const reversed = logs.toReversed();
+    
+    const filtered = selectedYear === 'ALL'
+      ? reversed
+      : reversed.filter(log => {
+          const year = log.date.getFullYear();
+          return year === selectedYear;
+        });
+    
+    // Collect all years for the filter dropdown
+    for (const log of logs) {
+      yearsSet.add(log.date.getFullYear());
     }
-    return sorted;
-  })();
+    
+    return {
+      availableYears: Array.from(yearsSet).sort((a, b) => b - a),
+      history: filtered
+    };
+  }, [logs, selectedYear]);
 
   const handleEdit = async (paymentId: number) => {
     try {

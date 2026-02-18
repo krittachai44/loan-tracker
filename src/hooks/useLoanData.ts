@@ -1,4 +1,5 @@
 import { useLiveQuery } from 'dexie-react-hooks';
+import { useMemo } from 'react';
 import { db } from '../db';
 import { calculateLoanSeries } from '../utils';
 
@@ -20,10 +21,11 @@ export const useLoanData = (loanId?: number) => {
     return payments.filter((p) => p.loanId === activeLoan.id);
   })();
 
-  const series = (() => {
+  // Memoize expensive calculation - React Compiler can't optimize across hook boundaries
+  const series = useMemo(() => {
     if (!activeLoan) return [];
     return calculateLoanSeries(activeLoan, loanPayments, referenceRates || []);
-  })();
+  }, [activeLoan, loanPayments, referenceRates]);
 
   const isLoading = !loans;
   return {

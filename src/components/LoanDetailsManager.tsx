@@ -26,7 +26,8 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
   const { showWarning, showError } = useSnackbar();
   const principal = useNumberInput({ initialValue: loan.principal, min: 0 });
 
-  const config = React.useMemo(() => ({
+  // React Compiler handles optimization - no manual useMemo needed
+  const config = {
     entity: loan,
     initializeEditState: (loan: Loan) => ({
       name: loan.name,
@@ -59,7 +60,7 @@ export const LoanDetailsManager: React.FC<LoanDetailsManagerProps> = ({ loan }) 
         console.error('Error updating loan:', error);
       }
     }
-  }), [loan, principal.numericValue, showWarning, showError]);
+  };
 
   const { isEditing, editState, startEdit, cancelEdit, saveEdit, updateField } = 
     useEditableEntity<Loan, EditState>(config);

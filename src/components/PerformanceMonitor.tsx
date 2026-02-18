@@ -70,8 +70,7 @@ function onRenderCallback(
 
   stats.set(id, current);
 
-  // Log slow renders (> 16ms = missed frame)
-  if (actualDuration > 16) {
+  if (actualDuration > baseDuration * 0.5 && actualDuration > baseDuration) {
     console.warn(`[Performance] Slow render detected in "${id}":`, {
       phase,
       duration: `${actualDuration.toFixed(2)}ms`,

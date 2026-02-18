@@ -10,6 +10,7 @@ import { LoanSummary } from './components/LoanSummary';
 import { PaymentList } from './components/PaymentList';
 import { LoanGraph } from './components/LoanGraph';
 import { DashboardSidebar } from './components/DashboardSidebar';
+import { PerformanceMonitor } from './components/PerformanceMonitor';
 import { useLoanData } from './hooks';
 import { LOADING_MESSAGES } from './constants';
 
@@ -58,20 +59,26 @@ function App() {
 
         <Container maxWidth="xl" sx={{ py: 4 }}>
           <Stack spacing={4}>
-            <LoanSummary
-              loan={activeLoan}
-              series={series}
-              totalPayments={loanPayments.length}
-              payments={loanPayments}
-              referenceRates={referenceRates}
-            />
+            <PerformanceMonitor id="LoanSummary">
+              <LoanSummary
+                loan={activeLoan}
+                series={series}
+                totalPayments={loanPayments.length}
+                payments={loanPayments}
+                referenceRates={referenceRates}
+              />
+            </PerformanceMonitor>
 
             <Grid2 container spacing={3}>
               {/* Main Content Area (Left) - 2/3 width */}
               <Grid2 size={{ xs: 12, lg: 8 }}>
                 <Stack spacing={3}>
-                  <LoanGraph data={series} />
-                  <PaymentList logs={paymentLogs} />
+                  <PerformanceMonitor id="LoanGraph">
+                    <LoanGraph data={series} />
+                  </PerformanceMonitor>
+                  <PerformanceMonitor id="PaymentList">
+                    <PaymentList logs={paymentLogs} />
+                  </PerformanceMonitor>
                 </Stack>
               </Grid2>
 
