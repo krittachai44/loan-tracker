@@ -36,9 +36,16 @@ export const LoanSummary = ({ loan, series, totalPayments, payments, referenceRa
     return loan.rates.length > 1 ? `${baseText} (Variable)` : `${baseText}`;
   })();
 
-  const totalInterest = series.reduce((sum, item) => sum + item.interest, 0);
-
-  const totalPaid = series.reduce((sum, item) => sum + item.amount, 0);
+  // Combine iterations: single loop instead of two reduces
+  const { totalInterest, totalPaid } = (() => {
+    let interest = 0;
+    let paid = 0;
+    for (const item of series) {
+      interest += item.interest;
+      paid += item.amount;
+    }
+    return { totalInterest: interest, totalPaid: paid };
+  })();
 
   const interestPercentage = totalPaid > 0 ? (totalInterest / totalPaid) * 100 : 0;
 

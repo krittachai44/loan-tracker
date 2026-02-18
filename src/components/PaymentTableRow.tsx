@@ -55,7 +55,7 @@ export const PaymentTableRow: React.FC<PaymentTableRowProps> = ({ log, onEdit, o
         </Typography>
       </TableCell>
       <TableCell align="right">
-        {log.paymentId && (
+        {log.paymentId != null && (
           <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1 }}>
             <Button
               variant="ghost"

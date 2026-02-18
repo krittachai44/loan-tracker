@@ -76,7 +76,7 @@ export const MRRManager: React.FC = () => {
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => r.id && handleDelete(r.id)}
+                onClick={() => r.id != null && handleDelete(r.id)}
                 color="error"
                 sx={{ minWidth: 24, minHeight: 24, p: 0 }}
               >
